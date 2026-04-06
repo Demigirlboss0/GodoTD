@@ -298,7 +298,6 @@ func _show_settings_popup() -> void:
 	var window = Window.new()
 	window.title = "Tower Roster Settings"
 	window.size = Vector2i(500, 400)
-	window.exclusive = true
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 
@@ -472,9 +471,6 @@ func _on_tower_name_changed(text: String) -> void:
 		var derived = _derive_filename(text)
 		filename_input.text = derived + ".tres"
 
-func _on_filename_changed(text: String) -> void:
-	pass
-
 func _derive_filename(tower_name: String) -> String:
 	var cleaned = ""
 	for c in tower_name:
@@ -491,12 +487,6 @@ func _derive_filename(tower_name: String) -> String:
 		return "TowerData"
 	
 	return title_cased + "TowerData"
-
-func _on_attack_style_changed(index: int) -> void:
-	pass
-
-func _on_target_mode_changed(index: int) -> void:
-	pass
 
 func _on_tag_submitted(text: String) -> void:
 	if text.is_empty():
@@ -528,7 +518,6 @@ func _prompt_add_resource_type_inline() -> void:
 	var window = Window.new()
 	window.title = "Add Resource Type"
 	window.size = Vector2i(300, 130)
-	window.exclusive = true
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 
@@ -588,7 +577,6 @@ func _remove_known_tag(tag: String, row: Control) -> void:
 	var window = Window.new()
 	window.title = "Remove Tag?"
 	window.size = Vector2i(300, 120)
-	window.exclusive = true
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 	
