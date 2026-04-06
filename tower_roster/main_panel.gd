@@ -78,30 +78,30 @@ func _refresh_tower_list() -> void:
 	for child in tower_list_container.get_children():
 		child.queue_free()
 
-	var towers = plugin.get_all_tower_resources()
+	var towers: Array[Resource] = plugin.get_all_tower_resources()
 	for tower in towers:
 		_add_tower_list_item(tower)
 
 func _add_tower_list_item(tower: Resource) -> void:
-	var item = HBoxContainer.new()
+	var item: HBoxContainer = HBoxContainer.new()
 	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
-	var click_area = Control.new()
+	var click_area: Control = Control.new()
 	click_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	click_area.mouse_entered.connect(func(): click_area.modulate = Color(0.8, 0.8, 0.8))
 	click_area.mouse_exited.connect(func(): click_area.modulate = Color(1, 1, 1))
-	click_area.gui_input.connect(func(event):
+	click_area.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			_load_tower_into_form(tower)
 	)
 	item.add_child(click_area)
 	
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = tower.tower_name if not tower.tower_name.is_empty() else "Unnamed Tower"
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	click_area.add_child(name_label)
 	
-	var delete_btn = Button.new()
+	var delete_btn: Button = Button.new()
 	delete_btn.text = "X"
 	delete_btn.pressed.connect(func(): _delete_tower(tower, item))
 	item.add_child(delete_btn)
@@ -145,28 +145,28 @@ func _refresh_visuals_list(visuals: Dictionary) -> void:
 		_add_visual_row(key, visuals[key])
 
 func _add_visual_row(key: String = "", value: Variant = null) -> void:
-	var row = HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	
-	var key_input = LineEdit.new()
+	var key_input: LineEdit = LineEdit.new()
 	key_input.placeholder_text = "Key"
 	key_input.text = key
 	key_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(key_input)
 	
-	var value_picker = Button.new()
+	var value_picker: Button = Button.new()
 	value_picker.text = "Select..." if value == null else value.resource_path.get_file() if value else "Select..."
 	value_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	value_picker.set_meta("visual_value", value)
 	
 	value_picker.pressed.connect(func():
-		_pick_resource(_get_visual_resource_type(), func(res):
+		_pick_resource(_get_visual_resource_type(), func(res: Resource):
 			value_picker.set_meta("visual_value", res)
 			value_picker.text = res.resource_path.get_file() if res else "Select..."
 		)
 	)
 	row.add_child(value_picker)
 	
-	var remove_btn = Button.new()
+	var remove_btn: Button = Button.new()
 	remove_btn.text = "X"
 	remove_btn.pressed.connect(func():
 		row.queue_free()
@@ -176,7 +176,7 @@ func _add_visual_row(key: String = "", value: Variant = null) -> void:
 	visuals_list.add_child(row)
 
 func _get_visual_resource_type() -> String:
-	var project_mode = settings.project_mode
+	var project_mode: int = settings.project_mode
 	return "Texture2D" if project_mode == 0 else "Mesh"
 
 func _refresh_costs_list(tower: Resource) -> void:
@@ -190,30 +190,30 @@ func _refresh_costs_list(tower: Resource) -> void:
 		_add_cost_row(rt, tower)
 
 func _add_cost_row(resource_type: String, tower: Resource) -> void:
-	var row = HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = resource_type + ":"
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(label)
 	
-	var input = SpinBox.new()
+	var input: SpinBox = SpinBox.new()
 	input.min_value = 0
 	input.max_value = 999999
 	input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
-	var field_name = "cost_" + resource_type.to_lower().replace(" ", "_")
+	var field_name: String = "cost_" + resource_type.to_lower().replace(" ", "_")
 	var existing_val = tower.get(field_name)
 	if existing_val != null:
 		input.value = float(existing_val)
 	
-	input.value_changed.connect(func(val):
+	input.value_changed.connect(func(val: float):
 		tower.set(field_name, int(val))
 	)
 	
 	row.add_child(input)
 	
-	var remove_btn = Button.new()
+	var remove_btn: Button = Button.new()
 	remove_btn.text = "✕"
 	remove_btn.tooltip_text = "Remove this resource type from all towers"
 	remove_btn.pressed.connect(func():
@@ -231,24 +231,24 @@ func _refresh_tags_list(tags: Array[String]) -> void:
 		_add_tag_item(tag)
 
 func _add_tag_item(tag: String) -> void:
-	var row = HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = tag
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
-	var is_unknown = not tag in settings.known_tags
+	var is_unknown: bool = not tag in settings.known_tags
 	if is_unknown:
 		label.modulate = Color(1, 0.8, 0, 1)
 	
 	row.add_child(label)
 	
-	var warning = Label.new()
+	var warning: Label = Label.new()
 	warning.text = "⚠" if is_unknown else ""
 	warning.tooltip_text = "Unknown tag - will be added to known tags" if is_unknown else ""
 	row.add_child(warning)
 	
-	var remove_btn = Button.new()
+	var remove_btn: Button = Button.new()
 	remove_btn.text = "X"
 	remove_btn.pressed.connect(func():
 		row.queue_free()
@@ -258,7 +258,7 @@ func _add_tag_item(tag: String) -> void:
 	target_tags_list.add_child(row)
 
 func _on_add_tower() -> void:
-	var output_dir = plugin.get_output_directory()
+	var output_dir: String = plugin.get_output_directory()
 	var TowerData: Script = load(output_dir.path_join("TowerData.gd"))
 	if TowerData:
 		current_tower = TowerData.new()
@@ -287,106 +287,106 @@ func _on_settings() -> void:
 	_show_settings_popup()
 
 func _show_settings_popup() -> void:
-	var window = Window.new()
+	var window: Window = Window.new()
 	window.title = "Tower Roster Settings"
 	window.size = Vector2i(500, 550)
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 8)
 	window.add_child(vbox)
 	
-	var title = Label.new()
+	var title: Label = Label.new()
 	title.text = "Settings"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
 	
-	var mode_row = HBoxContainer.new()
+	var mode_row: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(mode_row)
-	var mode_label = Label.new()
+	var mode_label: Label = Label.new()
 	mode_label.text = "Project Mode:"
 	mode_row.add_child(mode_label)
-	var mode_option = OptionButton.new()
+	var mode_option: OptionButton = OptionButton.new()
 	mode_option.add_item("2D", 0)
 	mode_option.add_item("3D", 1)
 	mode_option.selected = 0 if settings.project_mode == 0 else 1
 	mode_row.add_child(mode_option)
 	
-	var output_row = HBoxContainer.new()
+	var output_row: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(output_row)
-	var output_label = Label.new()
+	var output_label: Label = Label.new()
 	output_label.text = "Output Directory:"
 	output_row.add_child(output_label)
-	var output_input = LineEdit.new()
+	var output_input: LineEdit = LineEdit.new()
 	output_input.text = settings.output_directory
 	output_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	output_row.add_child(output_input)
 	
-	var resource_types_label = Label.new()
+	var resource_types_label: Label = Label.new()
 	resource_types_label.text = "Resource Types"
 	vbox.add_child(resource_types_label)
 	
-	var resource_types_scroll = ScrollContainer.new()
+	var resource_types_scroll: ScrollContainer = ScrollContainer.new()
 	resource_types_scroll.custom_minimum_size = Vector2(0, 80)
 	resource_types_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(resource_types_scroll)
-	var resource_types_list = VBoxContainer.new()
+	var resource_types_list: VBoxContainer = VBoxContainer.new()
 	resource_types_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	resource_types_scroll.add_child(resource_types_list)
 	
 	for rt in settings.resource_types:
-		var rt_row = HBoxContainer.new()
-		var rt_label = Label.new()
+		var rt_row: HBoxContainer = HBoxContainer.new()
+		var rt_label: Label = Label.new()
 		rt_label.text = rt
 		rt_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		rt_row.add_child(rt_label)
-		var rt_remove = Button.new()
+		var rt_remove: Button = Button.new()
 		rt_remove.text = "X"
 		rt_remove.pressed.connect(func(): _remove_resource_type(rt, rt_row))
 		rt_row.add_child(rt_remove)
 		resource_types_list.add_child(rt_row)
 	
-	var add_resource_type_btn = Button.new()
+	var add_resource_type_btn: Button = Button.new()
 	add_resource_type_btn.text = "+ Add Resource Type"
 	add_resource_type_btn.pressed.connect(func(): _prompt_add_resource_type_inline())
 	vbox.add_child(add_resource_type_btn)
 	
-	var known_tags_label = Label.new()
+	var known_tags_label: Label = Label.new()
 	known_tags_label.text = "Known Tags"
 	vbox.add_child(known_tags_label)
 	
-	var tags_scroll = ScrollContainer.new()
+	var tags_scroll: ScrollContainer = ScrollContainer.new()
 	tags_scroll.custom_minimum_size = Vector2(0, 80)
 	tags_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(tags_scroll)
-	var tags_list = VBoxContainer.new()
+	var tags_list: VBoxContainer = VBoxContainer.new()
 	tags_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tags_scroll.add_child(tags_list)
 	
 	for tag in settings.known_tags:
-		var tag_row = HBoxContainer.new()
-		var tag_label = Label.new()
+		var tag_row: HBoxContainer = HBoxContainer.new()
+		var tag_label: Label = Label.new()
 		tag_label.text = tag
 		tag_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tag_row.add_child(tag_label)
-		var tag_remove = Button.new()
+		var tag_remove: Button = Button.new()
 		tag_remove.text = "X"
 		tag_remove.pressed.connect(func(): _remove_known_tag(tag, tag_row))
 		tag_row.add_child(tag_remove)
 		tags_list.add_child(tag_row)
 	
-	var buttons_row = HBoxContainer.new()
+	var buttons_row: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(buttons_row)
 	buttons_row.alignment = BoxContainer.ALIGNMENT_END
 	
-	var cancel_btn = Button.new()
+	var cancel_btn: Button = Button.new()
 	cancel_btn.text = "Cancel"
 	cancel_btn.pressed.connect(func(): window.queue_free())
 	buttons_row.add_child(cancel_btn)
 	
-	var save_btn = Button.new()
+	var save_btn: Button = Button.new()
 	save_btn.text = "Save"
 	save_btn.pressed.connect(func():
 		settings.project_mode = mode_option.selected
@@ -401,48 +401,48 @@ func _show_settings_popup() -> void:
 	window.popup_centered()
 
 func _remove_resource_type(type_name: String, row: Control) -> void:
-	var field_name = "cost_" + type_name.to_lower().replace(" ", "_")
+	var field_name: String = "cost_" + type_name.to_lower().replace(" ", "_")
 	var towers_with_value: Array[Resource] = []
 	
 	for tower in plugin.get_all_tower_resources():
 		if tower.get(field_name) != null and tower.get(field_name) != 0:
 			towers_with_value.append(tower)
 	
-	var window = Window.new()
+	var window: Window = Window.new()
 	window.title = "Remove Resource Type"
 	window.size = Vector2i(400, 150)
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 	
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 8)
 	window.add_child(vbox)
 	
 	if towers_with_value.size() > 0:
-		var warn_label = Label.new()
+		var warn_label: Label = Label.new()
 		warn_label.text = str(towers_with_value.size()) + " tower(s) have non-zero \"" + type_name + "\" cost. These will be set to 0."
 		warn_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 		vbox.add_child(warn_label)
 	
-	var desc_label = Label.new()
+	var desc_label: Label = Label.new()
 	desc_label.text = "Remove \"" + type_name + "\" from the resource type list?"
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox.add_child(desc_label)
 	
-	var buttons = HBoxContainer.new()
+	var buttons: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(buttons)
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	
-	var cancel = Button.new()
+	var cancel: Button = Button.new()
 	cancel.text = "Cancel"
 	cancel.pressed.connect(func(): window.queue_free())
 	buttons.add_child(cancel)
 	
-	var remove = Button.new()
+	var remove: Button = Button.new()
 	remove.text = "Remove"
 	remove.pressed.connect(func():
-		var resource_types = settings.resource_types.duplicate()
+		var resource_types: Array[String] = settings.resource_types.duplicate()
 		resource_types.erase(type_name)
 		settings.resource_types = resource_types
 		
@@ -466,13 +466,13 @@ func _on_tower_name_changed(text: String) -> void:
 		filename_input.text = derived + ".tres"
 
 func _derive_filename(tower_name: String) -> String:
-	var cleaned = ""
+	var cleaned: String = ""
 	for c in tower_name:
 		if c.is_valid_identifier() or c == " ":
 			cleaned += c
 	
-	var words = cleaned.split(" ")
-	var title_cased = ""
+	var words: Array[String] = cleaned.split(" ")
+	var title_cased: String = ""
 	for word in words:
 		if word.length() > 0:
 			title_cased += word[0].to_upper() + word.substr(1).to_lower()
@@ -483,7 +483,7 @@ func _derive_filename(tower_name: String) -> String:
 	return title_cased + "TowerData"
 
 func _sanitize_filename(filename: String) -> String:
-	var result = ""
+	var result: String = ""
 	for c in filename:
 		if c.is_valid_identifier() or c == "." or c == "-" or c == "_":
 			result += c
@@ -493,7 +493,7 @@ func _on_tag_submitted(text: String) -> void:
 	if text.is_empty():
 		return
 	
-	var known_tags = settings.known_tags.duplicate()
+	var known_tags: Array[String] = settings.known_tags.duplicate()
 	if not text in known_tags:
 		known_tags.append(text)
 		settings.known_tags = known_tags
@@ -503,7 +503,7 @@ func _on_tag_submitted(text: String) -> void:
 	target_tags_input.text = ""
 
 func _on_projectile_picker_pressed() -> void:
-	_pick_resource("PackedScene", func(res):
+	_pick_resource("PackedScene", func(res: Resource):
 		if res:
 			current_tower.projectile_scene = res
 			projectile_picker.text = res.resource_path.get_file()
@@ -516,42 +516,42 @@ func _on_add_resource_type() -> void:
 	_prompt_add_resource_type_inline()
 
 func _prompt_add_resource_type_inline() -> void:
-	var window = Window.new()
+	var window: Window = Window.new()
 	window.title = "Add Resource Type"
 	window.size = Vector2i(300, 130)
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 8)
 	window.add_child(vbox)
 	
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = "Enter resource type name:"
 	vbox.add_child(label)
 	
-	var input = LineEdit.new()
+	var input: LineEdit = LineEdit.new()
 	input.placeholder_text = "Resource type name"
 	input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(input)
 	
-	var buttons = HBoxContainer.new()
+	var buttons: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(buttons)
 	
-	var cancel = Button.new()
+	var cancel: Button = Button.new()
 	cancel.text = "Cancel"
 	cancel.pressed.connect(func(): window.queue_free())
 	buttons.add_child(cancel)
 	
-	var spacer = Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(spacer)
-	var add = Button.new()
+	var add: Button = Button.new()
 	add.text = "Add"
 	add.pressed.connect(func():
 		if not input.text.is_empty():
-			var resource_types = settings.resource_types.duplicate()
+			var resource_types: Array[String] = settings.resource_types.duplicate()
 			resource_types.append(input.text)
 			settings.resource_types = resource_types
 			plugin.save_settings()
@@ -561,42 +561,42 @@ func _prompt_add_resource_type_inline() -> void:
 	)
 	buttons.add_child(add)
 	
-	input.text_submitted.connect(func(_text):
+	input.text_submitted.connect(func(_text: String):
 		add.pressed.emit()
 	)
 	input.grab_focus()
 	window.popup_centered()
 
 func _remove_known_tag(tag: String, row: Control) -> void:
-	var window = Window.new()
+	var window: Window = Window.new()
 	window.title = "Remove Tag?"
 	window.size = Vector2i(300, 120)
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 	
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 8)
 	window.add_child(vbox)
 	
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = "Remove \"" + tag + "\" from known tags?"
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox.add_child(label)
 	
-	var buttons = HBoxContainer.new()
+	var buttons: HBoxContainer = HBoxContainer.new()
 	vbox.add_child(buttons)
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	
-	var cancel = Button.new()
+	var cancel: Button = Button.new()
 	cancel.text = "Cancel"
 	cancel.pressed.connect(func(): window.queue_free())
 	buttons.add_child(cancel)
 	
-	var remove = Button.new()
+	var remove: Button = Button.new()
 	remove.text = "Remove"
 	remove.pressed.connect(func():
-		var known_tags = settings.known_tags.duplicate()
+		var known_tags: Array[String] = settings.known_tags.duplicate()
 		known_tags.erase(tag)
 		settings.known_tags = known_tags
 		row.queue_free()
@@ -608,7 +608,7 @@ func _remove_known_tag(tag: String, row: Control) -> void:
 	window.popup_centered()
 
 func _pick_resource(type_filter: String, callback: Callable) -> void:
-	var dialog = EditorFileDialog.new()
+	var dialog: EditorFileDialog = EditorFileDialog.new()
 	dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
 	dialog.access = EditorFileDialog.ACCESS_RESOURCES
 	
@@ -621,8 +621,8 @@ func _pick_resource(type_filter: String, callback: Callable) -> void:
 	else:
 		dialog.filters = ["*.tres", "*.tscn"]
 	
-	dialog.file_selected.connect(func(path):
-		var res = load(path)
+	dialog.file_selected.connect(func(path: String):
+		var res: Resource = load(path)
 		callback.call(res)
 		dialog.queue_free()
 	)
@@ -635,7 +635,7 @@ func _pick_resource(type_filter: String, callback: Callable) -> void:
 	dialog.popup_centered(Vector2(800, 600))
 
 func _on_save() -> void:
-	var tower_name = tower_name_input.text
+	var tower_name: String = tower_name_input.text
 	if tower_name.is_empty():
 		tower_name = "Unnamed Tower"
 	
@@ -652,8 +652,8 @@ func _on_save() -> void:
 	var visuals_dict: Dictionary = {}
 	for child in visuals_list.get_children():
 		if child is HBoxContainer:
-			var key_input = child.get_child(0) as LineEdit
-			var value_btn = child.get_child(1) as Button
+			var key_input: LineEdit = child.get_child(0) as LineEdit
+			var value_btn: Button = child.get_child(1) as Button
 			if key_input and not key_input.text.is_empty():
 				visuals_dict[key_input.text] = value_btn.get_meta("visual_value", null)
 	current_tower.visuals = visuals_dict
@@ -661,12 +661,12 @@ func _on_save() -> void:
 	var tags: Array[String] = []
 	for child in target_tags_list.get_children():
 		if child is HBoxContainer:
-			var label = child.get_child(0) as Label
+			var label: Label = child.get_child(0) as Label
 			if label:
 				tags.append(label.text)
 	current_tower.target_tags = tags
 	
-	var filename = filename_input.text
+	var filename: String = filename_input.text
 	if filename.is_empty():
 		filename = _derive_filename(tower_name) + ".tres"
 	elif not filename.ends_with(".tres"):
@@ -676,10 +676,10 @@ func _on_save() -> void:
 	if filename.is_empty():
 		filename = _derive_filename(tower_name) + ".tres"
 	
-	var existing_towers = plugin.get_all_tower_resources()
+	var existing_towers: Array[Resource] = plugin.get_all_tower_resources()
 	for existing in existing_towers:
 		if current_tower != existing and existing.resource_path.get_file() == filename:
-			var window = Window.new()
+			var window: Window = Window.new()
 			window.title = "Overwrite File?"
 			window.size = Vector2i(350, 130)
 			window.close_requested.connect(func(): window.queue_free())
@@ -695,16 +695,16 @@ func _on_save() -> void:
 			label.autowrap_mode = TextServer.AUTOWRAP_WORD
 			vbox.add_child(label)
 			
-			var buttons = HBoxContainer.new()
+			var buttons: HBoxContainer = HBoxContainer.new()
 			buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 			vbox.add_child(buttons)
 			
-			var cancel = Button.new()
+			var cancel: Button = Button.new()
 			cancel.text = "Cancel"
 			cancel.pressed.connect(func(): window.queue_free())
 			buttons.add_child(cancel)
 			
-			var confirm = Button.new()
+			var confirm: Button = Button.new()
 			confirm.text = "Overwrite"
 			confirm.pressed.connect(func():
 				_do_save(filename)
@@ -725,35 +725,35 @@ func _do_save(filename: String) -> void:
 		is_new_tower = false
 
 func _delete_tower(tower: Resource, list_item: Control) -> void:
-	var window = Window.new()
+	var window: Window = Window.new()
 	window.title = "Delete Tower?"
 	window.size = Vector2i(350, 130)
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 	
-	var vbox = VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 8)
 	window.add_child(vbox)
 	
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = "Delete \"" + tower.tower_name + "\"? This cannot be undone."
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox.add_child(label)
 	
-	var buttons = HBoxContainer.new()
+	var buttons: HBoxContainer = HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(buttons)
 	
-	var cancel = Button.new()
+	var cancel: Button = Button.new()
 	cancel.text = "Cancel"
 	cancel.pressed.connect(func(): window.queue_free())
 	buttons.add_child(cancel)
 	
-	var confirm = Button.new()
+	var confirm: Button = Button.new()
 	confirm.text = "Delete"
 	confirm.pressed.connect(func():
-		var file_name = tower.resource_path.get_file()
+		var file_name: String = tower.resource_path.get_file()
 		plugin.delete_tower_file(file_name)
 		list_item.queue_free()
 		if current_tower == tower:

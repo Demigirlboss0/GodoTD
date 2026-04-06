@@ -59,12 +59,12 @@ func _generate_tower_data_class() -> void:
 	if not output_dir.begins_with("res://"):
 		output_dir = "res://" + output_dir
 	
-	var project_mode = settings.project_mode
-	var project_mode_str = "2D" if project_mode == 0 else "3D"
-	var resource_types = settings.resource_types
+	var project_mode: int = settings.project_mode
+	var project_mode_str: String = "2D" if project_mode == 0 else "3D"
+	var resource_types: Array[String] = settings.resource_types
 	_generate_tower_class(output_dir, resource_types, project_mode_str)
 
-func _generate_tower_class(output_dir: String, resource_types: Array, project_mode: String) -> void:
+func _generate_tower_class(output_dir: String, resource_types: Array[String], project_mode: String) -> void:
 	var script_path = output_dir.path_join("TowerData.gd")
 	
 	var cost_fields = ""
