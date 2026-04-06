@@ -117,33 +117,30 @@ func _form_visible(visible: bool) -> void:
 	$HBoxContainer/RightPanel/EditForm/FormTitle.text = "New Tower" if is_new_tower else "Edit Tower"
 
 func _load_tower_into_form(tower: Resource) -> void:
-	current_tower = tower
+	current_tower = load(tower.resource_path)
 	is_new_tower = false
 	
-	var base_name = tower.resource_path.get_file().get_basename()
-	if base_name.ends_with("TowerData"):
-		base_name = base_name.substr(0, base_name.length() - 9)
-	current_filename = base_name + ".tres"
+	current_filename = current_tower.resource_path.get_file()
 	
-	tower_name_input.text = tower.tower_name
+	tower_name_input.text = current_tower.tower_name
 	filename_input.text = current_filename
-	range_input.value = tower.range
-	damage_input.value = tower.damage
-	fire_rate_input.value = tower.fire_rate
-	pierce_input.value = tower.pierce
-	multishot_input.value = tower.multishot
-	traversal_time_input.value = tower.traversal_time
-	attack_style_option.selected = tower.attack_style
-	target_mode_option.selected = tower.target_mode
+	range_input.value = current_tower.range
+	damage_input.value = current_tower.damage
+	fire_rate_input.value = current_tower.fire_rate
+	pierce_input.value = current_tower.pierce
+	multishot_input.value = current_tower.multishot
+	traversal_time_input.value = current_tower.traversal_time
+	attack_style_option.selected = current_tower.attack_style
+	target_mode_option.selected = current_tower.target_mode
 	
-	if tower.projectile_scene:
-		projectile_picker.text = tower.projectile_scene.resource_path.get_file()
+	if current_tower.projectile_scene:
+		projectile_picker.text = current_tower.projectile_scene.resource_path.get_file()
 	else:
 		projectile_picker.text = "Select..."
 	
-	_refresh_visuals_list(tower.visuals)
-	_refresh_costs_list(tower)
-	_refresh_tags_list(tower.target_tags)
+	_refresh_visuals_list(current_tower.visuals)
+	_refresh_costs_list(current_tower)
+	_refresh_tags_list(current_tower.target_tags)
 	
 	_form_visible(true)
 
@@ -193,6 +190,9 @@ func _refresh_costs_list(tower: Resource) -> void:
 	for child in costs_list.get_children():
 		child.queue_free()
 	
+	if settings.resource_types.is_empty():
+		return
+	
 	for rt in settings.resource_types:
 		_add_cost_row(rt, tower)
 
@@ -210,16 +210,23 @@ func _add_cost_row(resource_type: String, tower: Resource) -> void:
 	input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
 	var field_name = "cost_" + resource_type.to_lower().replace(" ", "_")
-	if tower.get(field_name) != null:
-		input.value = tower.get(field_name)
-	else:
-		input.value = 0
+	var existing_val = tower.get(field_name)
+	if existing_val != null:
+		input.value = float(existing_val)
 	
 	input.value_changed.connect(func(val):
-		tower.set(field_name, val)
+		tower.set(field_name, int(val))
 	)
 	
 	row.add_child(input)
+	
+	var remove_btn = Button.new()
+	remove_btn.text = "✕"
+	remove_btn.tooltip_text = "Remove this resource type from all towers"
+	remove_btn.pressed.connect(func():
+		_remove_resource_type(resource_type, null)
+	)
+	row.add_child(remove_btn)
 	
 	costs_list.add_child(row)
 
@@ -401,10 +408,16 @@ func _show_settings_popup() -> void:
 	window.popup_centered()
 
 func _remove_resource_type(type_name: String, row: Control) -> void:
+	var field_name = "cost_" + type_name.to_lower().replace(" ", "_")
+	var towers_with_value: Array[Resource] = []
+	
+	for tower in plugin.get_all_tower_resources():
+		if tower.get(field_name) != null and tower.get(field_name) != 0:
+			towers_with_value.append(tower)
+	
 	var window = Window.new()
-	window.title = "Remove Resource Type?"
-	window.size = Vector2i(300, 120)
-	window.exclusive = true
+	window.title = "Remove Resource Type"
+	window.size = Vector2i(400, 150)
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 	
@@ -413,10 +426,16 @@ func _remove_resource_type(type_name: String, row: Control) -> void:
 	vbox.add_theme_constant_override("separation", 8)
 	window.add_child(vbox)
 	
-	var label = Label.new()
-	label.text = "Remove \"" + type_name + "\" from resource types? This will also remove the cost field from all towers."
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	vbox.add_child(label)
+	if towers_with_value.size() > 0:
+		var warn_label = Label.new()
+		warn_label.text = str(towers_with_value.size()) + " tower(s) have non-zero \"" + type_name + "\" cost. These will be set to 0."
+		warn_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		vbox.add_child(warn_label)
+	
+	var desc_label = Label.new()
+	desc_label.text = "Remove \"" + type_name + "\" from the resource type list?"
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(desc_label)
 	
 	var buttons = HBoxContainer.new()
 	vbox.add_child(buttons)
@@ -433,7 +452,13 @@ func _remove_resource_type(type_name: String, row: Control) -> void:
 		var resource_types = settings.resource_types.duplicate()
 		resource_types.erase(type_name)
 		settings.resource_types = resource_types
-		row.queue_free()
+		
+		for tower in towers_with_value:
+			tower.set(field_name, 0)
+			plugin.save_tower(tower, tower.get("tower_name"))
+		
+		if row:
+			row.queue_free()
 		plugin.save_settings()
 		plugin.regenerate_tower_data_class()
 		window.queue_free()
@@ -532,7 +557,6 @@ func _prompt_add_resource_type_inline() -> void:
 	var spacer = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(spacer)
-	
 	var add = Button.new()
 	add.text = "Add"
 	add.pressed.connect(func():
@@ -543,7 +567,11 @@ func _prompt_add_resource_type_inline() -> void:
 			plugin.save_settings()
 			plugin.regenerate_tower_data_class()
 			window.queue_free()
-			if current_tower:
+			if current_tower and current_tower.resource_path:
+				var path = current_tower.resource_path
+				current_tower = load(path)
+				_refresh_costs_list(current_tower)
+			elif current_tower:
 				_refresh_costs_list(current_tower)
 			else:
 				_refresh_costs_list(Resource.new())
