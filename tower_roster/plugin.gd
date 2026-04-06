@@ -19,11 +19,11 @@ func _load_settings() -> TowerRosterSettings:
 	var settings_path = plugin_path.path_join("tower_roster_settings.tres")
 	
 	if FileAccess.file_exists(settings_path):
-		var loaded = load(settings_path)
+		var loaded: TowerRosterSettings = load(settings_path)
 		if loaded:
 			return loaded
 	
-	var settings_script = load(plugin_path.path_join("tower_roster_settings.gd"))
+	var settings_script: Script = load(plugin_path.path_join("tower_roster_settings.gd"))
 	var new_settings = settings_script.new()
 	ResourceSaver.save(new_settings, settings_path)
 	return new_settings
@@ -141,7 +141,7 @@ func get_output_directory() -> String:
 func get_all_tower_resources() -> Array[Resource]:
 	var output_dir = get_output_directory()
 	var towers: Array[Resource] = []
-	var TowerData = load(output_dir.path_join("TowerData.gd"))
+	var TowerData: Script = load(output_dir.path_join("TowerData.gd"))
 	
 	var dir = DirAccess.open(output_dir)
 	if dir == null:
@@ -153,7 +153,7 @@ func get_all_tower_resources() -> Array[Resource]:
 		if not file_name.begins_with(".") and file_name.ends_with(".tres"):
 			if file_name != "TowerData.gd" and file_name != "TowerData.tres":
 				var full_path = output_dir.path_join(file_name)
-				var res = load(full_path)
+				var res: Resource = load(full_path)
 				if res and res is Resource:
 					if TowerData and res.get_script() == TowerData:
 						towers.append(res)

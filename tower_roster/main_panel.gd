@@ -113,7 +113,7 @@ func _form_visible(visible: bool) -> void:
 	$HBoxContainer/RightPanel/EditForm/FormTitle.text = "New Tower" if is_new_tower else "Edit Tower"
 
 func _load_tower_into_form(tower: Resource) -> void:
-	current_tower = load(tower.resource_path)
+	current_tower = tower
 	is_new_tower = false
 	
 	filename_input.text = current_tower.resource_path.get_file()
@@ -259,7 +259,7 @@ func _add_tag_item(tag: String) -> void:
 
 func _on_add_tower() -> void:
 	var output_dir = plugin.get_output_directory()
-	var TowerData = load(output_dir.path_join("TowerData.gd"))
+	var TowerData: Script = load(output_dir.path_join("TowerData.gd"))
 	if TowerData:
 		current_tower = TowerData.new()
 	else:
@@ -448,7 +448,7 @@ func _remove_resource_type(type_name: String, row: Control) -> void:
 		
 		for tower in towers_with_value:
 			tower.set(field_name, 0)
-			plugin.save_tower(tower, tower.get("tower_name"))
+			plugin.save_tower(tower, tower.resource_path.get_file())
 		
 		if row:
 			row.queue_free()
@@ -649,7 +649,7 @@ func _on_save() -> void:
 	current_tower.attack_style = attack_style_option.selected
 	current_tower.target_mode = target_mode_option.selected
 	
-	var visuals_dict = {}
+	var visuals_dict: Dictionary = {}
 	for child in visuals_list.get_children():
 		if child is HBoxContainer:
 			var key_input = child.get_child(0) as LineEdit
@@ -676,6 +676,48 @@ func _on_save() -> void:
 	if filename.is_empty():
 		filename = _derive_filename(tower_name) + ".tres"
 	
+	var existing_towers = plugin.get_all_tower_resources()
+	for existing in existing_towers:
+		if current_tower != existing and existing.resource_path.get_file() == filename:
+			var window = Window.new()
+			window.title = "Overwrite File?"
+			window.size = Vector2i(350, 130)
+			window.close_requested.connect(func(): window.queue_free())
+			EditorInterface.get_base_control().add_child(window)
+			
+			var vbox = VBoxContainer.new()
+			vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+			vbox.add_theme_constant_override("separation", 8)
+			window.add_child(vbox)
+			
+			var label = Label.new()
+			label.text = "A tower named \"" + filename + "\" already exists. Overwrite?"
+			label.autowrap_mode = TextServer.AUTOWRAP_WORD
+			vbox.add_child(label)
+			
+			var buttons = HBoxContainer.new()
+			buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+			vbox.add_child(buttons)
+			
+			var cancel = Button.new()
+			cancel.text = "Cancel"
+			cancel.pressed.connect(func(): window.queue_free())
+			buttons.add_child(cancel)
+			
+			var confirm = Button.new()
+			confirm.text = "Overwrite"
+			confirm.pressed.connect(func():
+				_do_save(filename)
+				window.queue_free()
+			)
+			buttons.add_child(confirm)
+			
+			window.popup_centered()
+			return
+	
+	_do_save(filename)
+
+func _do_save(filename: String) -> void:
 	plugin.save_tower(current_tower, filename)
 	
 	if is_new_tower:
