@@ -28,8 +28,6 @@ func _load_settings():
 	
 	var dir = DirAccess.open(plugin_path)
 	if dir:
-		if not dir.dir_exists(plugin_path):
-			dir.make_dir(plugin_path)
 		ResourceSaver.save(new_settings, settings_path)
 	
 	return new_settings
@@ -120,6 +118,7 @@ const TARGET_MODE_NAMES = {
 	if file:
 		file.store_string(script_content)
 		file.close()
+		get_editor_interface().get_resource_filesystem().scan()
 
 func _add_main_panel() -> void:
 	main_panel = preload("res://addons/tower_roster/main_panel.tscn").instantiate()
@@ -176,8 +175,8 @@ func save_tower(tower, filename: String) -> bool:
 	if not filename.ends_with(".tres"):
 		file_path += ".tres"
 	
-	ResourceSaver.save(tower, file_path)
-	return true
+	var err = ResourceSaver.save(tower, file_path)
+	return err == OK
 
 func delete_tower_file(filename: String) -> bool:
 	var output_dir = get_output_directory()
@@ -192,5 +191,13 @@ func delete_tower_file(filename: String) -> bool:
 	return false
 
 func regenerate_tower_data_class() -> void:
+	var output_dir = settings.output_directory
+	if not output_dir.begins_with("res://"):
+		output_dir = "res://" + output_dir
+	
+	var class_path = output_dir.path_join("TowerData.gd")
+	if FileAccess.file_exists(class_path):
+		return
+	
 	_ensure_output_directory()
 	_generate_tower_data_class()

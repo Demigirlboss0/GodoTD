@@ -2,7 +2,7 @@
 extends Control
 
 var plugin: EditorPlugin
-var settings
+var settings: TowerRosterSettings
 
 var tower_list_container: VBoxContainer
 var edit_form: VBoxContainer
@@ -166,11 +166,11 @@ func _add_visual_row(key: String = "", value: Variant = null) -> void:
 	var value_picker = Button.new()
 	value_picker.text = "Select..." if value == null else value.resource_path.get_file() if value else "Select..."
 	value_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	value_picker.set_meta("visual_value", value)
 	
-	var visual_value = value
 	value_picker.pressed.connect(func():
 		_pick_resource(_get_visual_resource_type(), func(res):
-			visual_value = res
+			value_picker.set_meta("visual_value", res)
 			value_picker.text = res.resource_path.get_file() if res else "Select..."
 		)
 	)
@@ -221,12 +221,6 @@ func _add_cost_row(resource_type: String, tower: Resource) -> void:
 	
 	row.add_child(input)
 	
-	var add_type_btn = Button.new()
-	add_type_btn.text = "+"
-	add_type_btn.tooltip_text = "Add new resource type"
-	add_type_btn.pressed.connect(_on_add_resource_type)
-	row.add_child(add_type_btn)
-	
 	costs_list.add_child(row)
 
 func _refresh_tags_list(tags: Array[String]) -> void:
@@ -264,7 +258,8 @@ func _add_tag_item(tag: String) -> void:
 	target_tags_list.add_child(row)
 
 func _on_add_tower() -> void:
-	var TowerData = load("res://towers/TowerData.gd")
+	var output_dir = plugin.get_output_directory()
+	var TowerData = load(output_dir.path_join("TowerData.gd"))
 	if TowerData:
 		current_tower = TowerData.new()
 	else:
@@ -406,11 +401,46 @@ func _show_settings_popup() -> void:
 	window.popup_centered()
 
 func _remove_resource_type(type_name: String, row: Control) -> void:
-	var resource_types = settings.resource_types.duplicate()
-	resource_types.erase(type_name)
-	settings.resource_types = resource_types
-	row.queue_free()
-	plugin.regenerate_tower_data_class()
+	var window = Window.new()
+	window.title = "Remove Resource Type?"
+	window.size = Vector2i(300, 120)
+	window.exclusive = true
+	window.close_requested.connect(func(): window.queue_free())
+	EditorInterface.get_base_control().add_child(window)
+	
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 8)
+	window.add_child(vbox)
+	
+	var label = Label.new()
+	label.text = "Remove \"" + type_name + "\" from resource types? This will also remove the cost field from all towers."
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(label)
+	
+	var buttons = HBoxContainer.new()
+	vbox.add_child(buttons)
+	buttons.alignment = BoxContainer.ALIGNMENT_END
+	
+	var cancel = Button.new()
+	cancel.text = "Cancel"
+	cancel.pressed.connect(func(): window.queue_free())
+	buttons.add_child(cancel)
+	
+	var remove = Button.new()
+	remove.text = "Remove"
+	remove.pressed.connect(func():
+		var resource_types = settings.resource_types.duplicate()
+		resource_types.erase(type_name)
+		settings.resource_types = resource_types
+		row.queue_free()
+		plugin.save_settings()
+		plugin.regenerate_tower_data_class()
+		window.queue_free()
+	)
+	buttons.add_child(remove)
+	
+	window.popup_centered()
 
 func _on_tower_name_changed(text: String) -> void:
 	if is_new_tower or filename_input.text.is_empty():
@@ -527,17 +557,47 @@ func _prompt_add_resource_type_inline() -> void:
 	window.popup_centered()
 
 func _remove_known_tag(tag: String, row: Control) -> void:
-	var known_tags = settings.known_tags.duplicate()
-	known_tags.erase(tag)
-	settings.known_tags = known_tags
-	row.queue_free()
-	plugin.save_settings()
-
-var _pending_callback: Callable
+	var window = Window.new()
+	window.title = "Remove Tag?"
+	window.size = Vector2i(300, 120)
+	window.exclusive = true
+	window.close_requested.connect(func(): window.queue_free())
+	EditorInterface.get_base_control().add_child(window)
+	
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 8)
+	window.add_child(vbox)
+	
+	var label = Label.new()
+	label.text = "Remove \"" + tag + "\" from known tags?"
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(label)
+	
+	var buttons = HBoxContainer.new()
+	vbox.add_child(buttons)
+	buttons.alignment = BoxContainer.ALIGNMENT_END
+	
+	var cancel = Button.new()
+	cancel.text = "Cancel"
+	cancel.pressed.connect(func(): window.queue_free())
+	buttons.add_child(cancel)
+	
+	var remove = Button.new()
+	remove.text = "Remove"
+	remove.pressed.connect(func():
+		var known_tags = settings.known_tags.duplicate()
+		known_tags.erase(tag)
+		settings.known_tags = known_tags
+		row.queue_free()
+		plugin.save_settings()
+		window.queue_free()
+	)
+	buttons.add_child(remove)
+	
+	window.popup_centered()
 
 func _pick_resource(type_filter: String, callback: Callable) -> void:
-	_pending_callback = callback
-	
 	var dialog = EditorFileDialog.new()
 	dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
 	dialog.access = EditorFileDialog.ACCESS_RESOURCES
@@ -553,12 +613,11 @@ func _pick_resource(type_filter: String, callback: Callable) -> void:
 	
 	dialog.file_selected.connect(func(path):
 		var res = load(path)
-		_pending_callback.call(res)
+		callback.call(res)
 		dialog.queue_free()
 	)
 	
 	dialog.canceled.connect(func():
-		_pending_callback = Callable()
 		dialog.queue_free()
 	)
 	
@@ -586,7 +645,7 @@ func _on_save() -> void:
 			var key_input = child.get_child(0) as LineEdit
 			var value_btn = child.get_child(1) as Button
 			if key_input and not key_input.text.is_empty():
-				visuals_dict[key_input.text] = null
+				visuals_dict[key_input.text] = value_btn.get_meta("visual_value")
 	current_tower.visuals = visuals_dict
 	
 	var tags: Array[String] = []
@@ -601,9 +660,6 @@ func _on_save() -> void:
 	if filename.is_empty():
 		filename = _derive_filename(tower_name) + ".tres"
 	elif not filename.ends_with(".tres"):
-		filename += ".tres"
-	
-	if not filename.ends_with(".tres"):
 		filename += ".tres"
 	
 	plugin.save_tower(current_tower, filename)
