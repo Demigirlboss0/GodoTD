@@ -3,7 +3,7 @@ extends EditorPlugin
 
 var main_panel: Control
 var plugin_path: String
-var settings: TowerRosterSettings
+var settings
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_READY:
@@ -15,7 +15,7 @@ func _notification(what: int) -> void:
 	elif what == NOTIFICATION_EXIT_TREE:
 		_remove_main_panel()
 
-func _load_settings() -> TowerRosterSettings:
+func _load_settings():
 	var settings_path = plugin_path.path_join("tower_roster_settings.tres")
 	
 	if FileAccess.file_exists(settings_path):
@@ -23,8 +23,8 @@ func _load_settings() -> TowerRosterSettings:
 		if loaded:
 			return loaded
 	
-	var TowerRosterSettings = load(plugin_path.path_join("tower_roster_settings.gd"))
-	var new_settings = TowerRosterSettings.new()
+	var settings_script = load(plugin_path.path_join("tower_roster_settings.gd"))
+	var new_settings = settings_script.new()
 	ResourceSaver.save(new_settings, settings_path)
 	return new_settings
 
@@ -138,7 +138,7 @@ func get_output_directory() -> String:
 		out_dir = "res://" + out_dir
 	return out_dir
 
-func get_all_tower_resources() -> Array[Resource]:
+func get_all_tower_resources():
 	var output_dir = get_output_directory()
 	var towers = []
 	var TowerData = load(output_dir.path_join("TowerData.gd"))

@@ -58,9 +58,6 @@ func _connect_signals() -> void:
 	$HBoxContainer/LeftPanel/AddTowerButton.pressed.connect(_on_add_tower)
 	$HBoxContainer/LeftPanel/Header/SettingsButton.pressed.connect(_on_settings)
 	tower_name_input.text_changed.connect(_on_tower_name_changed)
-	filename_input.text_changed.connect(_on_filename_changed)
-	attack_style_option.item_selected.connect(_on_attack_style_changed)
-	target_mode_option.item_selected.connect(_on_target_mode_changed)
 	target_tags_input.text_submitted.connect(_on_tag_submitted)
 	projectile_picker.pressed.connect(_on_projectile_picker_pressed)
 	$HBoxContainer/RightPanel/EditForm/VisualsSection/AddVisualButton.pressed.connect(_on_add_visual)
@@ -297,7 +294,7 @@ func _on_settings() -> void:
 func _show_settings_popup() -> void:
 	var window = Window.new()
 	window.title = "Tower Roster Settings"
-	window.size = Vector2i(500, 400)
+	window.size = Vector2i(500, 550)
 	window.close_requested.connect(func(): window.queue_free())
 	EditorInterface.get_base_control().add_child(window)
 
@@ -337,6 +334,7 @@ func _show_settings_popup() -> void:
 	vbox.add_child(resource_types_label)
 	
 	var resource_types_scroll = ScrollContainer.new()
+	resource_types_scroll.custom_minimum_size = Vector2(0, 80)
 	resource_types_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(resource_types_scroll)
 	var resource_types_list = VBoxContainer.new()
@@ -365,6 +363,7 @@ func _show_settings_popup() -> void:
 	vbox.add_child(known_tags_label)
 	
 	var tags_scroll = ScrollContainer.new()
+	tags_scroll.custom_minimum_size = Vector2(0, 80)
 	tags_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(tags_scroll)
 	var tags_list = VBoxContainer.new()
@@ -619,7 +618,7 @@ func _pick_resource(type_filter: String, callback: Callable) -> void:
 	dialog.access = EditorFileDialog.ACCESS_RESOURCES
 	
 	if type_filter == "Texture2D":
-		dialog.filters = ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.tga", "*.svg"]
+		dialog.filters = ["*.tres"]
 	elif type_filter == "Mesh":
 		dialog.filters = ["*.obj", "*.fbx", "*.gltf", "*.glb", "*.tres"]
 	elif type_filter == "PackedScene":
