@@ -24,7 +24,6 @@ var target_tags_list: VBoxContainer
 var save_button: Button
 
 var current_tower: Resource
-var current_filename: String
 var is_new_tower: bool = false
 
 func _ready() -> void:
@@ -117,10 +116,7 @@ func _load_tower_into_form(tower: Resource) -> void:
 	current_tower = load(tower.resource_path)
 	is_new_tower = false
 	
-	current_filename = current_tower.resource_path.get_file()
-	
-	tower_name_input.text = current_tower.tower_name
-	filename_input.text = current_filename
+	filename_input.text = current_tower.resource_path.get_file()
 	range_input.value = current_tower.range
 	damage_input.value = current_tower.damage
 	fire_rate_input.value = current_tower.fire_rate
@@ -268,7 +264,6 @@ func _on_add_tower() -> void:
 		current_tower = TowerData.new()
 	else:
 		current_tower = Resource.new()
-	current_filename = ""
 	is_new_tower = true
 	
 	tower_name_input.text = ""
@@ -487,6 +482,13 @@ func _derive_filename(tower_name: String) -> String:
 	
 	return title_cased + "TowerData"
 
+func _sanitize_filename(filename: String) -> String:
+	var result = ""
+	for c in filename:
+		if c.is_valid_identifier() or c == "." or c == "-" or c == "_":
+			result += c
+	return result
+
 func _on_tag_submitted(text: String) -> void:
 	if text.is_empty():
 		return
@@ -555,14 +557,7 @@ func _prompt_add_resource_type_inline() -> void:
 			plugin.save_settings()
 			plugin.regenerate_tower_data_class()
 			window.queue_free()
-			if current_tower and current_tower.resource_path:
-				var path = current_tower.resource_path
-				current_tower = load(path)
-				_refresh_costs_list(current_tower)
-			elif current_tower:
-				_refresh_costs_list(current_tower)
-			else:
-				_refresh_costs_list(Resource.new())
+			_refresh_costs_list(current_tower)
 	)
 	buttons.add_child(add)
 	
@@ -677,6 +672,10 @@ func _on_save() -> void:
 	elif not filename.ends_with(".tres"):
 		filename += ".tres"
 	
+	filename = _sanitize_filename(filename)
+	if filename.is_empty():
+		filename = _derive_filename(tower_name) + ".tres"
+	
 	plugin.save_tower(current_tower, filename)
 	
 	if is_new_tower:
@@ -684,10 +683,42 @@ func _on_save() -> void:
 		is_new_tower = false
 
 func _delete_tower(tower: Resource, list_item: Control) -> void:
-	var file_name = tower.resource_path.get_file()
-	plugin.delete_tower_file(file_name)
-	list_item.queue_free()
+	var window = Window.new()
+	window.title = "Delete Tower?"
+	window.size = Vector2i(350, 130)
+	window.close_requested.connect(func(): window.queue_free())
+	EditorInterface.get_base_control().add_child(window)
 	
-	if current_tower == tower:
-		_form_visible(false)
-		current_tower = null
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 8)
+	window.add_child(vbox)
+	
+	var label = Label.new()
+	label.text = "Delete \"" + tower.tower_name + "\"? This cannot be undone."
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(label)
+	
+	var buttons = HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(buttons)
+	
+	var cancel = Button.new()
+	cancel.text = "Cancel"
+	cancel.pressed.connect(func(): window.queue_free())
+	buttons.add_child(cancel)
+	
+	var confirm = Button.new()
+	confirm.text = "Delete"
+	confirm.pressed.connect(func():
+		var file_name = tower.resource_path.get_file()
+		plugin.delete_tower_file(file_name)
+		list_item.queue_free()
+		if current_tower == tower:
+			_form_visible(false)
+			current_tower = null
+		window.queue_free()
+	)
+	buttons.add_child(confirm)
+	
+	window.popup_centered()
