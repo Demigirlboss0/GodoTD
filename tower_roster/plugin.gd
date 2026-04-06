@@ -25,11 +25,7 @@ func _load_settings():
 	
 	var TowerRosterSettings = load(plugin_path.path_join("tower_roster_settings.gd"))
 	var new_settings = TowerRosterSettings.new()
-	
-	var dir = DirAccess.open(plugin_path)
-	if dir:
-		ResourceSaver.save(new_settings, settings_path)
-	
+	ResourceSaver.save(new_settings, settings_path)
 	return new_settings
 
 func _ensure_output_directory() -> void:
