@@ -1,0 +1,272 @@
+[gd_scene load_steps=2 format=3 uid="uid://cxq1v2p5y4t8"]
+
+[ext_resource type="Script" path="res://addons/tower_roster/main_panel.gd" id="1_main"]
+
+[node name="MainPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LeftPanel" type="VBoxContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Header" type="HBoxContainer" parent="HBoxContainer/LeftPanel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="HBoxContainer/LeftPanel/Header"]
+layout_mode = 2
+text = "Towers"
+
+[node name="Spacer" type="Control" parent="HBoxContainer/LeftPanel/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SettingsButton" type="Button" parent="HBoxContainer/LeftPanel/Header"]
+layout_mode = 2
+text = "⚙"
+
+[node name="TowerList" type="ScrollContainer" parent="HBoxContainer/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+follow_focus = true
+
+[node name="ListContainer" type="VBoxContainer" parent="HBoxContainer/LeftPanel/TowerList"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddTowerButton" type="Button" parent="HBoxContainer/LeftPanel"]
+layout_mode = 2
+text = "+ Add Tower"
+
+[node name="HSeparator" type="HSeparator" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="RightPanel" type="ScrollContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+follow_focus = true
+
+[node name="EditForm" type="VBoxContainer" parent="HBoxContainer/RightPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FormTitle" type="Label" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+text = "Edit Tower"
+
+[node name="TowerNameRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="TowerNameLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/TowerNameRow"]
+layout_mode = 2
+text = "Tower Name:"
+
+[node name="TowerNameInput" type="LineEdit" parent="HBoxContainer/RightPanel/EditForm/TowerNameRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FilenameRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="FilenameLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/FilenameRow"]
+layout_mode = 2
+text = "Filename:"
+
+[node name="FilenameInput" type="LineEdit" parent="HBoxContainer/RightPanel/EditForm/FilenameRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatsContainer" type="VBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="RangeRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm/StatsContainer"]
+layout_mode = 2
+
+[node name="RangeLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/RangeRow"]
+layout_mode = 2
+text = "Range:"
+
+[node name="RangeInput" type="SpinBox" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/RangeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1000.0
+step = 0.1
+value = 10.0
+
+[node name="DamageRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm/StatsContainer"]
+layout_mode = 2
+
+[node name="DamageLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/DamageRow"]
+layout_mode = 2
+text = "Damage:"
+
+[node name="DamageInput" type="SpinBox" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/DamageRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 10000.0
+step = 0.1
+value = 10.0
+
+[node name="FireRateRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm/StatsContainer"]
+layout_mode = 2
+
+[node name="FireRateLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/FireRateRow"]
+layout_mode = 2
+text = "Fire Rate:"
+
+[node name="FireRateInput" type="SpinBox" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/FireRateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 100.0
+step = 0.1
+value = 1.0
+
+[node name="PierceRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm/StatsContainer"]
+layout_mode = 2
+
+[node name="PierceLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/PierceRow"]
+layout_mode = 2
+text = "Pierce:"
+
+[node name="PierceInput" type="SpinBox" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/PierceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 1000.0
+step = 1.0
+value = 1.0
+
+[node name="MultishotRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm/StatsContainer"]
+layout_mode = 2
+
+[node name="MultishotLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/MultishotRow"]
+layout_mode = 2
+text = "Multishot:"
+
+[node name="MultishotInput" type="SpinBox" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/MultishotRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 100.0
+step = 1.0
+value = 1.0
+
+[node name="TraversalTimeRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm/StatsContainer"]
+layout_mode = 2
+
+[node name="TraversalTimeLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/TraversalTimeRow"]
+layout_mode = 2
+text = "Traversal Time (s):"
+
+[node name="TraversalTimeInput" type="SpinBox" parent="HBoxContainer/RightPanel/EditForm/StatsContainer/TraversalTimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 100.0
+step = 0.1
+value = 0.0
+
+[node name="AttackStyleRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="AttackStyleLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/AttackStyleRow"]
+layout_mode = 2
+text = "Attack Style:"
+
+[node name="AttackStyleOption" type="OptionButton" parent="HBoxContainer/RightPanel/EditForm/AttackStyleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ProjectileRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="ProjectileLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/ProjectileRow"]
+layout_mode = 2
+text = "Projectile Scene:"
+
+[node name="ProjectilePicker" type="Button" parent="HBoxContainer/RightPanel/EditForm/ProjectileRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Select..."
+
+[node name="VisualsSection" type="VBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="VisualsLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/VisualsSection"]
+layout_mode = 2
+text = "Visuals"
+
+[node name="VisualsList" type="VBoxContainer" parent="HBoxContainer/RightPanel/EditForm/VisualsSection"]
+layout_mode = 2
+
+[node name="AddVisualButton" type="Button" parent="HBoxContainer/RightPanel/EditForm/VisualsSection"]
+layout_mode = 2
+text = "+ Add Visual"
+
+[node name="CostsSection" type="VBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="CostsLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/CostsSection"]
+layout_mode = 2
+text = "Costs"
+
+[node name="CostsList" type="VBoxContainer" parent="HBoxContainer/RightPanel/EditForm/CostsSection"]
+layout_mode = 2
+
+[node name="AddCostButton" type="Button" parent="HBoxContainer/RightPanel/EditForm/CostsSection"]
+layout_mode = 2
+text = "+ Add Cost"
+
+[node name="TargetModeRow" type="HBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="TargetModeLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/TargetModeRow"]
+layout_mode = 2
+text = "Target Mode:"
+
+[node name="TargetModeOption" type="OptionButton" parent="HBoxContainer/RightPanel/EditForm/TargetModeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TargetTagsSection" type="VBoxContainer" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+
+[node name="TargetTagsLabel" type="Label" parent="HBoxContainer/RightPanel/EditForm/TargetTagsSection"]
+layout_mode = 2
+text = "Target Tags"
+
+[node name="TargetTagsInput" type="LineEdit" parent="HBoxContainer/RightPanel/EditForm/TargetTagsSection"]
+layout_mode = 2
+
+[node name="TargetTagsList" type="VBoxContainer" parent="HBoxContainer/RightPanel/EditForm/TargetTagsSection"]
+layout_mode = 2
+
+[node name="Spacer2" type="Control" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SaveButton" type="Button" parent="HBoxContainer/RightPanel/EditForm"]
+layout_mode = 2
+text = "Save"
