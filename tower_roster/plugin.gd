@@ -187,13 +187,5 @@ func delete_tower_file(filename: String) -> bool:
 	return false
 
 func regenerate_tower_data_class() -> void:
-	var output_dir = settings.output_directory
-	if not output_dir.begins_with("res://"):
-		output_dir = "res://" + output_dir
-	
-	var class_path = output_dir.path_join("TowerData.gd")
-	if FileAccess.file_exists(class_path):
-		return
-	
 	_ensure_output_directory()
 	_generate_tower_data_class()

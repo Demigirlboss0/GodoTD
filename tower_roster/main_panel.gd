@@ -645,7 +645,7 @@ func _on_save() -> void:
 			var key_input = child.get_child(0) as LineEdit
 			var value_btn = child.get_child(1) as Button
 			if key_input and not key_input.text.is_empty():
-				visuals_dict[key_input.text] = value_btn.get_meta("visual_value")
+				visuals_dict[key_input.text] = value_btn.get_meta("visual_value", null)
 	current_tower.visuals = visuals_dict
 	
 	var tags: Array[String] = []
@@ -667,8 +667,6 @@ func _on_save() -> void:
 	if is_new_tower:
 		_refresh_tower_list()
 		is_new_tower = false
-	
-	plugin.regenerate_tower_data_class()
 
 func _delete_tower(tower: Resource, list_item: Control) -> void:
 	var file_name = tower.resource_path.get_file()
