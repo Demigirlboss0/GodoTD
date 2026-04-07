@@ -459,7 +459,10 @@ func _load_enemy_to_form(enemy: Resource) -> void:
 	var visuals: Dictionary = enemy.visuals if enemy.visuals else {}
 	_load_visuals(visuals)
 	
-	var tags: Array[String] = enemy.target_tags if enemy.target_tags else []
+	var tags: Array[String] = []
+	if enemy.target_tags:
+		for t in enemy.target_tags:
+			tags.append(t as String)
 	_load_tags(tags)
 	
 	_on_resource_types_changed()
