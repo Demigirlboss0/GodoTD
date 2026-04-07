@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://t0835dvip5ux"]
+
+[ext_resource type="Script" uid="uid://bta37f7c1duc0" path="res://enemies/EnemyData.gd" id="1_fhch7"]
+
+[resource]
+script = ExtResource("1_fhch7")
+enemy_name = "GoonToTheMoon"

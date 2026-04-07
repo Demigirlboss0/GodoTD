@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EnemyRosterSettings" format=3 uid="uid://bbsphmpx3gsgb"]
+
+[ext_resource type="Script" uid="uid://cs4hfous8uuxn" path="res://addons/enemy_roster/enemy_roster_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+project_mode = 1
+resource_types = Array[String](["gold"])
+known_tags = Array[String](["CAMO"])
