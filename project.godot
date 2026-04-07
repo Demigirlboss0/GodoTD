@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="GodoTD — Enemy Roster"
+config/name="GodoTD"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
