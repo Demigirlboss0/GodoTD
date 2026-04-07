@@ -1,15 +1,15 @@
-# Godot 4+ specific ignores
-.godot/
-/android/
+# Ignore everything by default
+*
 
-# OS
-.DS_Store
-Thumbs.db
+# Whitelist specific files and directories
+!addons/
+!docs/
+!LICENSE
+!README.md
+!project.godot
+!.editorconfig
+!.gitattributes
+!.gitignore
 
-# Editor
-*.swp
-*.swo
-*~
-
-# Import files
-*.import
+# Addons subdirectories (keep them)
+!addons/**
