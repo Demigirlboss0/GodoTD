@@ -109,7 +109,7 @@ func _generate_enemy_data_class() -> void:
 		code += "@export var reward_%s: int = 0\n" % resource_type
 	
 	var class_path := get_output_directory() + "EnemyData.gd" as String
-	var file = FileAccess.open(class_path, FileAccess.WRITE)
+	var file := FileAccess.open(class_path, FileAccess.WRITE) as FileAccess
 	if file:
 		file.store_string(code)
 		file.close()

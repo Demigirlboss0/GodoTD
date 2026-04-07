@@ -703,7 +703,7 @@ func _save_current_enemy() -> void:
 		_do_save(output_path)
 
 func _show_overwrite_confirmation(path: String) -> void:
-	var dialog = ConfirmationDialog.new()
+	var dialog := ConfirmationDialog.new() as ConfirmationDialog
 	dialog.dialog_text = "A resource named %s already exists. Overwrite it?" % path.get_file()
 	dialog.ok_button_text = "Overwrite"
 	dialog.cancel_button_text = "Cancel"

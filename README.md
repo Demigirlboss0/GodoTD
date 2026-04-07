@@ -1,27 +1,42 @@
-# Tower Roster
+# GodoTD - Enemy & Tower Roster Plugins
 
-A Godot 4 editor plugin that provides a form-driven UI for creating and managing TowerData resources for tower defense games.
+Godot 4 editor plugins for managing enemy and tower data resources in tower defense games.
 
 ## Features
 
+### Enemy Roster
+- **Visual Form Editor** - Create and edit enemy data through an intuitive UI
+- **Dynamic Rewards** - Define custom resource types (gold, points, etc.)
+- **Visual Assets** - Link textures (2D) or meshes (3D) to enemies
+- **Target Tags** - Define which towers can target specific enemies
+- **Auto-generated Class** - EnemyData.gd is automatically created based on your settings
+
+### Tower Roster
 - **Visual Form Editor** - Create and edit tower data through an intuitive UI
-- **Dynamic Costs** - Define custom resource types (Gold, Wood, etc.)
+- **Dynamic Costs** - Define custom resource types (gold, wood, etc.)
 - **Visual Assets** - Link textures (2D) or meshes (3D) to towers
 - **Target Tags** - Define which enemies each tower can target
 - **Auto-generated Class** - TowerData.gd is automatically created based on your settings
 
 ## Installation
 
-1. Download or clone this repository
-2. Copy the `tower_roster` folder into your Godot project's `addons/` directory
-3. Enable the plugin in **Project > Project Settings > Plugins**
+1. Copy the `addons/` folder into your Godot project's root directory
+2. Enable both plugins in **Project > Project Settings > Plugins**
+3. "Enemy Roster" and "Tower Roster" panels will appear at the bottom of the editor
 
 ## Quick Start
 
-1. Click **+ Add Tower** to create a new tower
-2. Fill in the tower name, stats, visuals, and costs
+### Enemy Roster
+1. Click **+ Add Enemy** to create a new enemy
+2. Fill in name, stats, visuals, and rewards
 3. Click **Save** to create the resource
-4. Use `load("res://Towers/YourTower.tres")` in your game code
+4. Use `load("res://enemies/YourEnemy.tres")` in your game code
+
+### Tower Roster
+1. Click **+ Add Tower** to create a new tower
+2. Fill in name, stats, visuals, and costs
+3. Click **Save** to create the resource
+4. Use `load("res://towers/YourTower.tres")` in your game code
 
 ## Documentation
 
