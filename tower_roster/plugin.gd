@@ -117,7 +117,7 @@ const TARGET_MODE_NAMES = {
 		get_editor_interface().get_resource_filesystem().scan()
 
 func _add_main_panel() -> void:
-	main_panel = preload("res://addons/tower_roster/addons/main_panel.tscn").instantiate()
+	main_panel = preload("res://tower_roster/main_panel.tscn").instantiate()
 	main_panel.set("plugin", self)
 	main_panel.set("settings", settings)
 	add_control_to_bottom_panel(main_panel, "Tower Roster")

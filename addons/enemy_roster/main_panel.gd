@@ -88,24 +88,28 @@ func _build_ui() -> void:
 	add_enemy_btn.pressed.connect(_on_add_enemy_pressed)
 	header.add_child(add_enemy_btn)
 
-	settings_btn = Button.new()
-	settings_btn.text = "⚙"
-	settings_btn.pressed.connect(_on_settings_pressed)
-	header.add_child(settings_btn)
-
 	enemy_list = ItemList.new()
 	enemy_list.custom_minimum_size.y = 200
 	enemy_list.item_selected.connect(_on_enemy_selected)
 	left_panel.add_child(enemy_list)
-
+	
+	var form_container: VBoxContainer
 	edit_form_panel = ScrollContainer.new()
 	edit_form_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	edit_form_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hsplit.add_child(edit_form_panel)
-
-	var form_container := VBoxContainer.new() as VBoxContainer
+	
+	form_container = VBoxContainer.new() as VBoxContainer
 	form_container.set_anchors_preset(Control.PRESET_FULL_RECT)
 	form_container.add_theme_constant_override("separation", 8)
 	edit_form_panel.add_child(form_container)
+	
+	var settings_sep := VSeparator.new() as VSeparator
+	hsplit.add_child(settings_sep)
+	
+	var settings_panel := VBoxContainer.new() as VBoxContainer
+	settings_panel.custom_minimum_size.x = 250
+	hsplit.add_child(settings_panel)
 
 	var name_label := Label.new() as Label
 	name_label.text = "Enemy Name"
@@ -201,6 +205,8 @@ func _build_ui() -> void:
 	save_btn.text = "Save"
 	save_btn.pressed.connect(_on_save_pressed)
 	form_container.add_child(save_btn)
+	
+	_build_settings_ui(settings_panel)
 
 	_refresh_enemy_list()
 
@@ -540,7 +546,72 @@ func _show_message_dialog(message: String, button_text: String, on_confirm: Call
 	)
 
 func _on_settings_pressed() -> void:
-	_build_settings_panel()
+	pass
+
+func _build_settings_ui(parent: Control) -> void:
+	var settings_container := VBoxContainer.new() as VBoxContainer
+	settings_container.add_theme_constant_override("separation", 4)
+	parent.add_child(settings_container)
+	settings_vbox = settings_container
+	
+	var settings_label := Label.new() as Label
+	settings_label.text = "Settings"
+	settings_container.add_child(settings_label)
+	
+	var project_mode_option := OptionButton.new() as OptionButton
+	project_mode_option.add_item("2D", 0)
+	project_mode_option.add_item("3D", 1)
+	project_mode_option.selected = plugin.settings.project_mode
+	project_mode_option.item_selected.connect(func(idx: int):
+		plugin.settings.project_mode = idx
+		plugin.save_settings()
+	)
+	project_mode_option.custom_minimum_size.y = 30
+	settings_container.add_child(project_mode_option)
+	
+	var output_dir_input := LineEdit.new() as LineEdit
+	output_dir_input.text = plugin.settings.output_directory
+	output_dir_input.text_changed.connect(_on_output_directory_changed)
+	output_dir_input.custom_minimum_size.y = 30
+	settings_container.add_child(output_dir_input)
+	
+	var output_error_label := Label.new() as Label
+	output_error_label.name = "output_error"
+	output_error_label.modulate = Color(1, 0.3, 0.3)
+	output_error_label.visible = false
+	output_error_label.add_theme_font_size_override("font_size", 10)
+	settings_container.add_child(output_error_label)
+	_update_settings_panel_error()
+	
+	var resource_types_label := Label.new() as Label
+	resource_types_label.text = "Resource Types"
+	settings_container.add_child(resource_types_label)
+	
+	var resource_types_list := VBoxContainer.new() as VBoxContainer
+	resource_types_list.name = "resource_types_list"
+	settings_container.add_child(resource_types_list)
+	_populate_resource_types_list(resource_types_list)
+	
+	var add_resource_type_btn := Button.new() as Button
+	add_resource_type_btn.text = "+ Add"
+	add_resource_type_btn.pressed.connect(_show_add_resource_type_dialog)
+	add_resource_type_btn.custom_minimum_size.y = 24
+	settings_container.add_child(add_resource_type_btn)
+	
+	var tags_label := Label.new() as Label
+	tags_label.text = "Known Tags"
+	settings_container.add_child(tags_label)
+	
+	var tags_list := VBoxContainer.new() as VBoxContainer
+	tags_list.name = "tags_list"
+	settings_container.add_child(tags_list)
+	_populate_tags_list(tags_list)
+	
+	var add_tag_btn := Button.new() as Button
+	add_tag_btn.text = "+ Add"
+	add_tag_btn.pressed.connect(_show_add_tag_dialog)
+	add_tag_btn.custom_minimum_size.y = 24
+	settings_container.add_child(add_tag_btn)
 
 func _build_settings_panel() -> void:
 	if settings_panel and is_instance_valid(settings_panel):

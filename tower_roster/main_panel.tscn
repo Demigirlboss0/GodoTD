@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cxq1v2p5y4t8"]
 
-[ext_resource type="Script" path="res://addons/tower_roster/addons/main_panel.gd" id="1_main"]
+[ext_resource type="Script" path="res://tower_roster/main_panel.gd" id="1_main"]
 
 [node name="MainPanel" type="Control"]
 layout_mode = 3
