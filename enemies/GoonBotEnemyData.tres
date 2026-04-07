@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://dfyroa2r3tjq0"]
-
-[ext_resource type="Script" uid="uid://bta37f7c1duc0" path="res://enemies/EnemyData.gd" id="1_7kv6g"]
-
-[resource]
-script = ExtResource("1_7kv6g")
-enemy_name = "Goon Bot"
