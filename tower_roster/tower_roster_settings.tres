@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="TowerRosterSettings" format=3 uid="uid://dh2x1u4p00iup"]
+
+[ext_resource type="Script" uid="uid://dkfiuenkx7gas" path="res://addons/tower_roster/tower_roster_settings.gd" id="1_eowpa"]
+
+[resource]
+script = ExtResource("1_eowpa")
+resource_types = Array[String](["wood", "gold", "iron"])
