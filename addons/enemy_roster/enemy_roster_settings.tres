@@ -4,6 +4,5 @@
 
 [resource]
 script = ExtResource("1")
-project_mode = 1
 resource_types = Array[String](["gold"])
 known_tags = Array[String](["CAMO"])

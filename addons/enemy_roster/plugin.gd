@@ -1,7 +1,15 @@
 @tool
 extends EditorPlugin
 
-const SETTINGS_PATH = "res://addons/enemy_roster/enemy_roster_settings.tres"
+## Enemy Roster Plugin
+## Provides a bottom panel UI for managing enemy data resources for tower defense games.
+##
+## Features:
+## - Create and edit enemy data resources
+## - Manage visuals, tags, and rewards
+## - Configure project settings (output directory, resource types, known tags)
+
+const SETTINGS_PATH := "res://addons/enemy_roster/enemy_roster_settings.tres"
 
 signal settings_changed
 signal resource_types_changed
@@ -40,8 +48,7 @@ func _load_settings() -> void:
 		ResourceSaver.save(settings, SETTINGS_PATH)
 
 func _create_default_settings() -> EnemyRosterSettings:
-	var new_settings := EnemyRosterSettings.new()
-	return new_settings
+	return EnemyRosterSettings.new()
 
 func _ensure_output_directory() -> void:
 	if not DirAccess.dir_exists_absolute(settings.output_directory):
@@ -55,7 +62,9 @@ func _create_enemy_data_class_if_needed() -> void:
 		_generate_enemy_data_class()
 
 func _generate_enemy_data_class() -> void:
-	var code = "@tool\nextends Resource\nclass_name EnemyData\n\n"
+	var code := "@tool\n"
+	code += "extends Resource\n"
+	code += "class_name EnemyData\n\n"
 	code += "@export var enemy_name: String = \"\"\n"
 	code += "@export var max_health: float = 100.0\n"
 	code += "@export var speed: float = 100.0\n"
@@ -67,7 +76,7 @@ func _generate_enemy_data_class() -> void:
 		code += "@export var reward_%s: int = 0\n" % resource_type
 	
 	var class_path := _get_enemy_data_class_path() as String
-	var file = FileAccess.open(class_path, FileAccess.WRITE)
+	var file := FileAccess.open(class_path, FileAccess.WRITE)
 	if file:
 		file.store_string(code)
 		file.close()
