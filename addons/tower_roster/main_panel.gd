@@ -768,8 +768,9 @@ func _show_overwrite_confirmation(path: String) -> void:
 	dialog.dialog_text = "A resource named %s already exists. Overwrite it?" % path.get_file()
 	dialog.ok_button_text = "Overwrite"
 	dialog.cancel_button_text = "Cancel"
+	dialog.size = Vector2i(int(350 * _scale), int(180 * _scale))
 	EditorInterface.get_base_control().add_child(dialog)
-	dialog.popup_centered()
+	dialog.popup()
 	dialog.confirmed.connect(func():
 		_do_save(path)
 		dialog.queue_free()
@@ -836,9 +837,10 @@ func _do_save(path: String) -> void:
 func _show_message_dialog(message: String, button_text: String, on_confirm: Callable) -> void:
 	var dialog := AcceptDialog.new() as AcceptDialog
 	dialog.dialog_text = message
-	EditorInterface.get_base_control().add_child(dialog)
 	dialog.ok_button_text = button_text
-	dialog.popup_centered()
+	dialog.size = Vector2i(int(350 * _scale), int(180 * _scale))
+	EditorInterface.get_base_control().add_child(dialog)
+	dialog.popup()
 	dialog.confirmed.connect(func():
 		on_confirm.call()
 		dialog.queue_free()
@@ -930,13 +932,11 @@ func _show_add_tag_dialog() -> void:
 func _show_input_dialog(title: String, message: String, placeholder: String, on_confirm: Callable) -> void:
 	var window := Window.new() as Window
 	window.title = title
-	window.size = Vector2i(int(350 * _scale), int(150 * _scale))
 	window.transient = true
 	window.exclusive = true
+	window.size = Vector2i(int(350 * _scale), int(150 * _scale))
 	EditorInterface.get_base_control().add_child(window)
-	var screen_size: Vector2 = EditorInterface.get_editor_main_screen().size as Vector2
-	var window_size: Vector2 = window.size as Vector2
-	window.position = (screen_size - window_size) / 2
+	window.popup()
 	
 	var vbox := VBoxContainer.new() as VBoxContainer
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -978,13 +978,14 @@ func _show_confirm_dialog(title: String, message: String, on_confirm: Callable) 
 	var dialog := ConfirmationDialog.new() as ConfirmationDialog
 	dialog.title = title
 	dialog.dialog_text = message
+	dialog.size = Vector2i(int(350 * _scale), int(180 * _scale))
 	EditorInterface.get_base_control().add_child(dialog)
 	dialog.confirmed.connect(func():
 		on_confirm.call()
 		dialog.queue_free()
 	)
 	dialog.canceled.connect(func(): dialog.queue_free())
-	dialog.popup_centered()
+	dialog.popup()
 
 func _show_remove_resource_type_dialog(resource_type: String) -> void:
 	var field_name := "cost_" + resource_type.to_lower().replace(" ", "_") as String
