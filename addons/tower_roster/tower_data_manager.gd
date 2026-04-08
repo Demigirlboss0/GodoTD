@@ -45,7 +45,7 @@ func save_tower(tower: Resource, path: String) -> bool:
 	if not tower:
 		return false
 	
-	var save_result := ResourceSaver.save(tower, path, ResourceSaver.FLAG_SAVE_RUNTIME)
+	var save_result := ResourceSaver.save(tower, path)
 	if save_result == OK:
 		EditorInterface.get_resource_filesystem().scan()
 		return true
@@ -67,11 +67,11 @@ func _generate_tower_data_class() -> void:
 	code += "enum AttackStyle { LINEAR, RADIAL }\n"
 	code += "enum TargetMode { WHITELIST, BLACKLIST }\n\n"
 	code += "@export var tower_name: String = \"\"\n"
-	code += "@export var range: float = 10.0\n"
-	code += "@export var damage: float = 10.0\n"
-	code += "@export var fire_rate: float = 1.0\n"
-	code += "@export var pierce: int = 1\n"
-	code += "@export var multishot: int = 1\n"
+	code += "@export var range: float = 0.0\n"
+	code += "@export var damage: float = 0.0\n"
+	code += "@export var fire_rate: float = 0.0\n"
+	code += "@export var pierce: int = 0\n"
+	code += "@export var multishot: int = 0\n"
 	code += "@export var projectile_scene: PackedScene\n"
 	code += "@export var traversal_time: float = 0.0\n"
 	code += "@export var attack_style: AttackStyle = AttackStyle.LINEAR\n"

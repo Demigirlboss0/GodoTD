@@ -66,9 +66,9 @@ func _generate_enemy_data_class() -> void:
 	code += "extends Resource\n"
 	code += "class_name EnemyData\n\n"
 	code += "@export var enemy_name: String = \"\"\n"
-	code += "@export var max_health: float = 100.0\n"
-	code += "@export var speed: float = 100.0\n"
-	code += "@export var damage: float = 1.0\n"
+	code += "@export var max_health: float = 0.0\n"
+	code += "@export var speed: float = 0.0\n"
+	code += "@export var damage: float = 0.0\n"
 	code += "@export var target_tags: Array[String] = []\n"
 	code += "@export var visuals: Dictionary = {}\n"
 	

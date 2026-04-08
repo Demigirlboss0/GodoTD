@@ -78,7 +78,7 @@ func save_enemy(enemy: Resource, path: String) -> bool:
 	if not enemy:
 		return false
 	
-	var save_result := ResourceSaver.save(enemy, path, ResourceSaver.FLAG_SAVE_RUNTIME)
+	var save_result := ResourceSaver.save(enemy, path)
 	if save_result == OK:
 		EditorInterface.get_resource_filesystem().scan()
 		return true
@@ -99,9 +99,9 @@ func _generate_enemy_data_class() -> void:
 	code += "extends Resource\n"
 	code += "class_name EnemyData\n\n"
 	code += "@export var enemy_name: String = \"\"\n"
-	code += "@export var max_health: float = 100.0\n"
-	code += "@export var speed: float = 100.0\n"
-	code += "@export var damage: float = 1.0\n"
+	code += "@export var max_health: float = 0.0\n"
+	code += "@export var speed: float = 0.0\n"
+	code += "@export var damage: float = 0.0\n"
 	code += "@export var target_tags: Array[String] = []\n"
 	code += "@export var visuals: Dictionary = {}\n"
 	
