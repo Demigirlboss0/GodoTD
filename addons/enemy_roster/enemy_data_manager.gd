@@ -78,7 +78,7 @@ func save_enemy(enemy: Resource, path: String) -> bool:
 	if not enemy:
 		return false
 	
-	var save_result := ResourceSaver.save(enemy, path)
+	var save_result := ResourceSaver.save(enemy, path, ResourceSaver.FLAG_SAVE_RUNTIME)
 	if save_result == OK:
 		EditorInterface.get_resource_filesystem().scan()
 		return true

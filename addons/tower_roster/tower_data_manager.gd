@@ -45,7 +45,7 @@ func save_tower(tower: Resource, path: String) -> bool:
 	if not tower:
 		return false
 	
-	var save_result := ResourceSaver.save(tower, path)
+	var save_result := ResourceSaver.save(tower, path, ResourceSaver.FLAG_SAVE_RUNTIME)
 	if save_result == OK:
 		EditorInterface.get_resource_filesystem().scan()
 		return true
