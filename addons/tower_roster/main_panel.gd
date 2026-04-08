@@ -133,6 +133,14 @@ func _build_left_panel(parent: HSplitContainer) -> void:
 	add_tower_btn.pressed.connect(_on_add_tower_pressed)
 	header.add_child(add_tower_btn)
 	
+	var delete_tower_btn := Button.new()
+	delete_tower_btn.flat = true
+	delete_tower_btn.icon = _theme.get_icon("Remove", "EditorIcons")
+	delete_tower_btn.text = "Delete"
+	delete_tower_btn.tooltip_text = "Delete selected tower (Del)"
+	delete_tower_btn.pressed.connect(_attempt_delete_selected_tower)
+	header.add_child(delete_tower_btn)
+	
 	tower_list = ItemList.new()
 	tower_list.custom_minimum_size.y = int(200 * _scale)
 	tower_list.item_selected.connect(_on_tower_selected)
@@ -170,32 +178,32 @@ func _build_form_fields(parent: VBoxContainer) -> void:
 	range_input = parent.get_child(parent.get_child_count() - 1).get_child(1) as SpinBox
 	range_input.min_value = 0
 	range_input.max_value = DEFAULT_MAX_VALUE
-	range_input.value = 10.0
+	range_input.value = -1.0
 	
 	parent.add_child(_make_property_row("Damage:", _make_spinbox()))
 	damage_input = parent.get_child(parent.get_child_count() - 1).get_child(1) as SpinBox
 	damage_input.min_value = 0
 	damage_input.max_value = DEFAULT_MAX_VALUE
-	damage_input.value = 10.0
+	damage_input.value = -1.0
 	
 	parent.add_child(_make_property_row("Fire Rate:", _make_spinbox()))
 	fire_rate_input = parent.get_child(parent.get_child_count() - 1).get_child(1) as SpinBox
 	fire_rate_input.min_value = 0
 	fire_rate_input.max_value = DEFAULT_MAX_VALUE
 	fire_rate_input.step = 0.1
-	fire_rate_input.value = 1.0
+	fire_rate_input.value = -1.0
 	
 	parent.add_child(_make_property_row("Pierce:", _make_spinbox()))
 	pierce_input = parent.get_child(parent.get_child_count() - 1).get_child(1) as SpinBox
-	pierce_input.min_value = 1
+	pierce_input.min_value = 0
 	pierce_input.max_value = DEFAULT_MAX_VALUE
-	pierce_input.value = 1
+	pierce_input.value = -1
 	
 	parent.add_child(_make_property_row("Multishot:", _make_spinbox()))
 	multishot_input = parent.get_child(parent.get_child_count() - 1).get_child(1) as SpinBox
-	multishot_input.min_value = 1
+	multishot_input.min_value = 0
 	multishot_input.max_value = DEFAULT_MAX_VALUE
-	multishot_input.value = 1
+	multishot_input.value = -1
 	
 	parent.add_child(_make_property_row("Traversal Time:", _make_spinbox()))
 	traversal_time_input = parent.get_child(parent.get_child_count() - 1).get_child(1) as SpinBox
@@ -495,11 +503,11 @@ func _load_tower_to_form(tower: Resource) -> void:
 		filename_input.text = current_tower.resource_path.get_file()
 	else:
 		filename_input.text = ""
-	range_input.value = tower.get("range") if "range" in tower else 10.0
-	damage_input.value = tower.get("damage") if "damage" in tower else 10.0
-	fire_rate_input.value = tower.get("fire_rate") if "fire_rate" in tower else 1.0
-	pierce_input.value = tower.get("pierce") if "pierce" in tower else 1
-	multishot_input.value = tower.get("multishot") if "multishot" in tower else 1
+	range_input.value = tower.get("range") if "range" in tower else -1.0
+	damage_input.value = tower.get("damage") if "damage" in tower else -1.0
+	fire_rate_input.value = tower.get("fire_rate") if "fire_rate" in tower else -1.0
+	pierce_input.value = tower.get("pierce") if "pierce" in tower else -1
+	multishot_input.value = tower.get("multishot") if "multishot" in tower else -1
 	traversal_time_input.value = tower.get("traversal_time") if "traversal_time" in tower else 0.0
 	attack_style_option.selected = tower.get("attack_style") if "attack_style" in tower else 0
 	target_mode_option.selected = tower.get("target_mode") if "target_mode" in tower else 0
@@ -523,11 +531,11 @@ func _load_tower_to_form(tower: Resource) -> void:
 func _clear_form() -> void:
 	tower_name_input.text = ""
 	filename_input.text = ""
-	range_input.value = 10.0
-	damage_input.value = 10.0
-	fire_rate_input.value = 1.0
-	pierce_input.value = 1
-	multishot_input.value = 1
+	range_input.value = -1.0
+	damage_input.value = -1.0
+	fire_rate_input.value = -1.0
+	pierce_input.value = -1
+	multishot_input.value = -1
 	traversal_time_input.value = 0.0
 	attack_style_option.selected = 0
 	target_mode_option.selected = 0

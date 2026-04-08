@@ -127,6 +127,14 @@ func _build_left_panel(parent: HSplitContainer) -> void:
 	add_enemy_btn.pressed.connect(_on_add_enemy_pressed)
 	header.add_child(add_enemy_btn)
 	
+	var delete_enemy_btn := Button.new()
+	delete_enemy_btn.flat = true
+	delete_enemy_btn.icon = _theme.get_icon("Remove", "EditorIcons")
+	delete_enemy_btn.text = "Delete"
+	delete_enemy_btn.tooltip_text = "Delete selected enemy (Del)"
+	delete_enemy_btn.pressed.connect(_attempt_delete_selected_enemy)
+	header.add_child(delete_enemy_btn)
+	
 	enemy_list = ItemList.new()
 	enemy_list.custom_minimum_size.y = int(200 * _scale)
 	enemy_list.item_selected.connect(_on_enemy_selected)
@@ -452,9 +460,9 @@ func _load_enemy_to_form(enemy: Resource) -> void:
 		filename_input.text = current_enemy.resource_path.get_file()
 	else:
 		filename_input.text = ""
-	max_health_input.value = enemy.max_health if "max_health" in enemy else 100.0
-	speed_input.value = enemy.speed if "speed" in enemy else 100.0
-	damage_input.value = enemy.damage if "damage" in enemy else 1.0
+	max_health_input.value = enemy.max_health if "max_health" in enemy else -1.0
+	speed_input.value = enemy.speed if "speed" in enemy else -1.0
+	damage_input.value = enemy.damage if "damage" in enemy else -1.0
 	
 	var visuals: Dictionary = enemy.visuals if enemy.visuals else {}
 	_load_visuals(visuals)
@@ -470,9 +478,9 @@ func _load_enemy_to_form(enemy: Resource) -> void:
 func _clear_form() -> void:
 	enemy_name_input.text = ""
 	filename_input.text = ""
-	max_health_input.value = 100
-	speed_input.value = 100
-	damage_input.value = 1
+	max_health_input.value = -1.0
+	speed_input.value = -1.0
+	damage_input.value = -1.0
 	
 	_clear_visuals()
 	_clear_tags()
