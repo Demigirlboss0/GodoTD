@@ -1,0 +1,61 @@
+[gd_resource type="Resource" load_steps=8 format=3 uid="uid://enemy_schema_001"]
+
+[ext_resource type="Script" path="res://addons/roster_core/roster_property.gd" id="1_prop"]
+[ext_resource type="Script" path="res://addons/roster_core/roster_schema.gd" id="2_schema"]
+
+[sub_resource type="Resource" id="prop_name"]
+script = ExtResource("1_prop")
+property_name = "enemy_name"
+display_name = "Name"
+category = "Basic Info"
+type = 0
+default_value = ""
+
+[sub_resource type="Resource" id="prop_max_health"]
+script = ExtResource("1_prop")
+property_name = "max_health"
+category = "Stats"
+type = 2
+default_value = -1.0
+
+[sub_resource type="Resource" id="prop_speed"]
+script = ExtResource("1_prop")
+property_name = "speed"
+category = "Stats"
+type = 2
+default_value = -1.0
+
+[sub_resource type="Resource" id="prop_damage"]
+script = ExtResource("1_prop")
+property_name = "damage"
+category = "Stats"
+type = 2
+default_value = -1.0
+
+[sub_resource type="Resource" id="prop_tags"]
+script = ExtResource("1_prop")
+property_name = "target_tags"
+category = "Tags"
+type = 6
+default_value = Array[String]([])
+
+[sub_resource type="Resource" id="prop_visuals"]
+script = ExtResource("1_prop")
+property_name = "visuals"
+category = "Visuals"
+type = 7
+default_value = {}
+
+[resource]
+script = ExtResource("2_schema")
+roster_name = "Enemy Roster"
+roster_icon = "res://icon.svg"
+output_directory = "res://enemies/"
+data_class_name = "EnemyData"
+data_class_script_path = "res://enemies/EnemyData.gd"
+base_properties = Array[ExtResource("1_prop")]([SubResource("prop_name"), SubResource("prop_max_health"), SubResource("prop_speed"), SubResource("prop_damage"), SubResource("prop_tags"), SubResource("prop_visuals")])
+dynamic_properties_label = "Rewards"
+dynamic_properties_key = "rewards"
+project_mode = 0
+resource_types = Array[String](["gold"])
+known_tags = Array[String](["CAMO"])

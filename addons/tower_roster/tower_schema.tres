@@ -1,0 +1,101 @@
+[gd_resource type="Resource" script_class="RosterSchema" format=3 uid="uid://iybk1ghdjfwy"]
+
+[ext_resource type="Script" uid="uid://cam3rvr4ieymc" path="res://addons/roster_core/roster_property.gd" id="1_prop"]
+[ext_resource type="Script" uid="uid://c2c14dcj8lern" path="res://addons/roster_core/roster_schema.gd" id="2_schema"]
+
+[sub_resource type="Resource" id="prop_name"]
+script = ExtResource("1_prop")
+property_name = "tower_name"
+display_name = "Name"
+category = "Basic Info"
+
+[sub_resource type="Resource" id="prop_range"]
+script = ExtResource("1_prop")
+property_name = "range"
+category = "Stats"
+type = 2
+default_value = -1.0
+
+[sub_resource type="Resource" id="prop_damage"]
+script = ExtResource("1_prop")
+property_name = "damage"
+category = "Stats"
+type = 2
+default_value = -1.0
+
+[sub_resource type="Resource" id="prop_fire_rate"]
+script = ExtResource("1_prop")
+property_name = "fire_rate"
+category = "Stats"
+type = 2
+default_value = -1.0
+
+[sub_resource type="Resource" id="prop_pierce"]
+script = ExtResource("1_prop")
+property_name = "pierce"
+category = "Stats"
+type = 1
+default_value = -1
+
+[sub_resource type="Resource" id="prop_multishot"]
+script = ExtResource("1_prop")
+property_name = "multishot"
+category = "Stats"
+type = 1
+default_value = -1
+
+[sub_resource type="Resource" id="prop_traversal"]
+script = ExtResource("1_prop")
+property_name = "traversal_time"
+category = "Stats"
+type = 2
+default_value = 0.0
+
+[sub_resource type="Resource" id="prop_attack_style"]
+script = ExtResource("1_prop")
+property_name = "attack_style"
+category = "Attack"
+type = 4
+default_value = 0
+enum_name = "AttackStyle"
+enum_values = Array[String](["LINEAR", "RADIAL"])
+
+[sub_resource type="Resource" id="prop_projectile"]
+script = ExtResource("1_prop")
+property_name = "projectile_scene"
+category = "Attack"
+type = 5
+
+[sub_resource type="Resource" id="prop_target_mode"]
+script = ExtResource("1_prop")
+property_name = "target_mode"
+category = "Targeting"
+type = 4
+default_value = 0
+enum_name = "TargetMode"
+enum_values = Array[String](["WHITELIST", "BLACKLIST"])
+
+[sub_resource type="Resource" id="prop_target_tags"]
+script = ExtResource("1_prop")
+property_name = "target_tags"
+category = "Targeting"
+type = 6
+default_value = Array[String]([])
+
+[sub_resource type="Resource" id="prop_visuals"]
+script = ExtResource("1_prop")
+property_name = "visuals"
+category = "Visuals"
+type = 7
+default_value = {}
+
+[resource]
+script = ExtResource("2_schema")
+roster_name = "Tower Roster"
+output_directory = "res://towers/"
+data_class_name = "TowerData"
+data_class_script_path = "res://towers/TowerData.gd"
+base_properties = Array[ExtResource("1_prop")]([SubResource("prop_name"), SubResource("prop_range"), SubResource("prop_damage"), SubResource("prop_fire_rate"), SubResource("prop_pierce"), SubResource("prop_multishot"), SubResource("prop_traversal"), SubResource("prop_attack_style"), SubResource("prop_projectile"), SubResource("prop_target_mode"), SubResource("prop_target_tags"), SubResource("prop_visuals")])
+dynamic_properties_label = "Costs"
+dynamic_properties_key = "costs"
+resource_types = Array[String](["Gold", "Iron"])

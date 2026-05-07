@@ -1,0 +1,7 @@
+@tool
+extends Resource
+class_name {CLASS_NAME}
+
+{ENUMS}{BASE_PROPERTIES}@export var {DYNAMIC_KEY}: Dictionary = {}
+
+{ENUM_NAMES}
