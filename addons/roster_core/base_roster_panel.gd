@@ -7,6 +7,7 @@ signal request_refresh_list
 
 var _plugin: EditorPlugin
 var _schema: RosterSchema
+var _shared_config: SharedConfig
 var _manager: RosterDataManager
 var _theme: Theme
 var _scale: float = 1.0
@@ -18,12 +19,17 @@ var is_new_entry: bool = false
 var _dirty: bool = false
 var _loading_entry: bool = false
 
+## Pending changes for reference-type properties (e.g. PackedScene).
+## UI writes here instead of mutating current_entry, so Discard can revert.
+var _pending_changes: Dictionary = {}
+
 ## Node references (unique names)
 var entry_list: ItemList
 var search_edit: LineEdit
 var form_container: VBoxContainer
 var add_button: Button
 var delete_button: Button
+var save_button: Button
 var settings_button: Button
 
 ## Active settings container (null when modal is closed)
@@ -36,6 +42,7 @@ var _prop_controls: Dictionary = {}
 
 ## Status label reference
 var _status_label: Label = null
+var _status_tween: Tween = null
 
 ## Deferred initialization flag
 var _initialized: bool = false
@@ -74,10 +81,12 @@ func _initialize() -> void:
 	form_container = %FormContainer
 	add_button = %AddButton
 	delete_button = %DeleteButton
+	save_button = %SaveButton
 	settings_button = %SettingsButton
 	
 	add_button.pressed.connect(_on_add_pressed)
 	delete_button.pressed.connect(_on_delete_pressed)
+	save_button.pressed.connect(_on_save_pressed)
 	settings_button.pressed.connect(_show_settings_modal)
 	entry_list.item_selected.connect(_on_entry_selected)
 	entry_list.gui_input.connect(_on_list_input)
@@ -85,8 +94,14 @@ func _initialize() -> void:
 	gui_input.connect(_on_gui_input)
 	
 	_schema = _plugin.schema
-	_manager = RosterDataManager.new(_schema)
+	_shared_config = SharedConfig.new()
+	if FileAccess.file_exists(SharedConfig.PATH):
+		var loaded := load(SharedConfig.PATH) as SharedConfig
+		if loaded:
+			_shared_config = loaded
+	_manager = RosterDataManager.new(_schema, _shared_config)
 	
+	_shared_config.config_changed.connect(_on_shared_config_changed)
 	_plugin.schema_changed.connect(_on_settings_changed)
 	
 	_apply_theme_to_tree(self)
@@ -95,6 +110,7 @@ func _initialize() -> void:
 	
 	add_button.tooltip_text = "Add new (Ctrl+N)"
 	delete_button.tooltip_text = "Delete selected (Del)"
+	save_button.tooltip_text = "Save"
 	settings_button.tooltip_text = "Settings"
 	
 	## Icon-only toolbar buttons
@@ -113,6 +129,9 @@ func _teardown() -> void:
 	if _plugin:
 		if _plugin.schema_changed.is_connected(_on_settings_changed):
 			_plugin.schema_changed.disconnect(_on_settings_changed)
+	if _shared_config and _shared_config.config_changed.is_connected(_on_shared_config_changed):
+		_shared_config.config_changed.disconnect(_on_shared_config_changed)
+	_manager = null
 
 func _add_button_icon(btn: Button, icon_name: String) -> void:
 	if _theme:
@@ -124,12 +143,14 @@ func _add_button_icon(btn: Button, icon_name: String) -> void:
 func _apply_theme_to_tree(node: Control) -> void:
 	if _theme == null:
 		return
-	if node is Label:
-		node.add_theme_color_override("font_color", _theme.get_color("property_color", "Editor"))
 	if node is Button:
 		node.add_theme_font_size_override("font_size", _theme.get_font_size("main_size", "EditorFonts"))
-	if node is LineEdit or node is SpinBox:
+	if node is LineEdit or node is SpinBox or node is OptionButton:
 		node.add_theme_font_size_override("font_size", _theme.get_font_size("main_size", "EditorFonts"))
+	if node is PanelContainer:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = _theme.get_color("base_color", "Editor")
+		node.add_theme_stylebox_override("panel", sb)
 	for child in node.get_children():
 		if child is Control:
 			_apply_theme_to_tree(child)
@@ -152,18 +173,13 @@ func _build_form() -> void:
 	
 	## Dynamic properties section (Costs / Rewards)
 	_add_dynamic_section()
+	_refresh_dynamic_list()
 	
 	## Status label
 	_status_label = Label.new()
 	_status_label.visible = false
 	_status_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.3))
 	form_container.add_child(_status_label)
-	
-	## Save button
-	var save_btn := Button.new()
-	save_btn.text = "Save"
-	save_btn.pressed.connect(_on_save_pressed)
-	form_container.add_child(save_btn)
 
 func _add_form_section(category: String) -> void:
 	if not form_container:
@@ -288,7 +304,7 @@ func _make_property_row(prop: RosterProperty) -> Control:
 			input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			if input is TagsEditor:
 				input.set_editor_scale(_scale)
-				input.set_known_tags(_schema.known_tags)
+				input.set_known_tags(_shared_config.known_tags)
 				input.tag_added.connect(_on_editor_tag_added)
 				input.tag_added.connect(func(_tag): _mark_dirty())
 				input.tag_removed.connect(func(_tag): _mark_dirty())
@@ -312,14 +328,19 @@ func _show_settings_modal() -> void:
 	var window := Window.new()
 	window.title = _schema.roster_name + " Settings"
 	window.transient = true
-	window.exclusive = true
-	window.size = Vector2i(int(400 * _scale), int(500 * _scale))
+	window.size = Vector2i(int(340 * _scale), int(380 * _scale))
 	EditorInterface.get_base_control().add_child(window)
 	window.popup()
+	_center_window(window)
+	
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel.theme = _theme
+	window.add_child(panel)
 	
 	var scroll := ScrollContainer.new()
 	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
-	window.add_child(scroll)
+	panel.add_child(scroll)
 	
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -329,6 +350,7 @@ func _show_settings_modal() -> void:
 	
 	_settings_container = vbox
 	_build_settings_into(vbox)
+	_apply_theme_to_tree(panel)
 	
 	window.close_requested.connect(func():
 		_settings_container = null
@@ -338,8 +360,6 @@ func _show_settings_modal() -> void:
 func _build_settings_into(container: VBoxContainer) -> void:
 	for child in container.get_children():
 		child.queue_free()
-	
-	container.add_child(_make_section_header("Settings"))
 	
 	var mode_option := OptionButton.new()
 	mode_option.add_item("2D", 0)
@@ -443,6 +463,7 @@ func _load_entry_to_form(entry: Resource) -> void:
 	
 	_loading_entry = false
 	_dirty = false
+	_pending_changes.clear()
 
 func _match_control_value(control: Control, type: RosterProperty.PropertyType, value: Variant) -> void:
 	match type:
@@ -481,6 +502,8 @@ func _clear_form() -> void:
 		_match_control_value(control, type, prop.get_default_value_typed())
 	
 	_clear_dynamic()
+	_refresh_dynamic_list()
+	_pending_changes.clear()
 
 
 ## ============================================================================
@@ -490,7 +513,7 @@ func _clear_form() -> void:
 func _load_dynamic_properties(entry: Resource) -> void:
 	var key := _schema.dynamic_properties_key
 	var dict: Dictionary = entry.get(key) if entry and key in entry else {}
-	for rt in _schema.resource_types:
+	for rt in _shared_config.resource_types:
 		var val = dict.get(rt, 0)
 		var control = _prop_controls.get("__dyn_" + rt)
 		if control is SpinBox:
@@ -504,7 +527,12 @@ func _refresh_dynamic_list() -> void:
 	for child in container.get_children():
 		child.queue_free()
 	
-	for rt in _schema.resource_types:
+	for key in _prop_controls.keys():
+		if key is String and key.begins_with("__dyn_"):
+			_prop_controls.erase(key)
+	
+	for rt in _shared_config.resource_types:
+		var captured_rt := rt
 		var row := HBoxContainer.new()
 		var label := Label.new()
 		label.text = rt.capitalize() + ":"
@@ -523,7 +551,7 @@ func _refresh_dynamic_list() -> void:
 		var remove_btn := Button.new()
 		remove_btn.flat = true
 		remove_btn.text = "X"
-		remove_btn.pressed.connect(func(): _show_remove_resource_type_dialog(rt))
+		remove_btn.pressed.connect(func(): _show_remove_resource_type_dialog(captured_rt))
 		row.add_child(remove_btn)
 		
 		container.add_child(row)
@@ -532,8 +560,9 @@ func _clear_dynamic() -> void:
 	var container = _prop_controls.get("__dynamic_container")
 	if container is VBoxContainer:
 		for child in container.get_children():
+			container.remove_child(child)
 			child.queue_free()
-	for rt in _schema.resource_types:
+	for rt in _shared_config.resource_types:
 		_prop_controls.erase("__dyn_" + rt)
 
 
@@ -551,13 +580,13 @@ func _mark_dirty() -> void:
 ## ============================================================================
 
 func _on_editor_tag_added(tag: String) -> void:
-	if not tag in _schema.known_tags:
-		_schema.known_tags.append(tag)
-		_plugin.save_schema()
+	if not tag in _shared_config.known_tags:
+		_shared_config.known_tags.append(tag)
+		save_shared_config()
 		_rebuild_settings_tags()
 	for control in _prop_controls.values():
 		if control is TagsEditor:
-			control.set_known_tags(_schema.known_tags)
+			control.set_known_tags(_shared_config.known_tags)
 
 
 ## ============================================================================
@@ -570,8 +599,7 @@ func _on_scene_picker_pressed(prop_name: String, btn: Button) -> void:
 	dialog.filters = ["*.tscn"]
 	EditorInterface.get_base_control().add_child(dialog)
 	dialog.file_selected.connect(func(path: String):
-		if current_entry:
-			current_entry.set(prop_name, load(path))
+		_pending_changes[prop_name] = load(path)
 		btn.text = path.get_file()
 		_mark_dirty()
 		dialog.queue_free()
@@ -647,7 +675,9 @@ func _do_save(path: String, display_name: String) -> void:
 				if control is OptionButton:
 					entry.set(prop_name, control.selected)
 			RosterProperty.PropertyType.TYPE_PACKED_SCENE:
-				if current_entry and prop_name in current_entry:
+				if prop_name in _pending_changes:
+					entry.set(prop_name, _pending_changes[prop_name])
+				elif current_entry and prop_name in current_entry:
 					entry.set(prop_name, current_entry.get(prop_name))
 			RosterProperty.PropertyType.TYPE_DICTIONARY:
 				if control is VisualsEditor:
@@ -658,7 +688,7 @@ func _do_save(path: String, display_name: String) -> void:
 	
 	## Set dynamic properties (Dictionary)
 	var dynamic_dict := {}
-	for rt in _schema.resource_types:
+	for rt in _shared_config.resource_types:
 		var control = _prop_controls.get("__dyn_" + rt)
 		if control is SpinBox:
 			dynamic_dict[rt] = int(control.value)
@@ -669,6 +699,7 @@ func _do_save(path: String, display_name: String) -> void:
 		current_entry_path = path
 		is_new_entry = false
 		_dirty = false
+		_pending_changes.clear()
 		_refresh_entry_list()
 		_show_status("Saved successfully!")
 	else:
@@ -774,6 +805,7 @@ func _on_gui_input(event: InputEvent) -> void:
 			match key_event.keycode:
 				KEY_S:
 					_on_save_pressed()
+					accept_event()
 				KEY_N:
 					_on_add_pressed()
 					accept_event()
@@ -802,7 +834,7 @@ func _on_settings_changed() -> void:
 		if control is VisualsEditor:
 			control.set_project_mode(_schema.project_mode)
 		if control is TagsEditor:
-			control.set_known_tags(_schema.known_tags)
+			control.set_known_tags(_shared_config.known_tags)
 
 func _on_output_dir_changed(text: String) -> void:
 	if _validate_output_dir(text):
@@ -811,6 +843,19 @@ func _on_output_dir_changed(text: String) -> void:
 		_manager._ensure_output_directory()
 	_update_output_error()
 
+func save_shared_config() -> void:
+	ResourceSaver.save(_shared_config, SharedConfig.PATH)
+	EditorInterface.get_resource_filesystem().update_file(SharedConfig.PATH)
+	_shared_config.config_changed.emit()
+
+func _on_shared_config_changed() -> void:
+	_rebuild_settings_rt()
+	_rebuild_settings_tags()
+	_refresh_dynamic_list()
+	for control in _prop_controls.values():
+		if control is TagsEditor:
+			control.set_known_tags(_shared_config.known_tags)
+
 
 ## ============================================================================
 ## SETTINGS UI POPULATORS
@@ -818,8 +863,10 @@ func _on_output_dir_changed(text: String) -> void:
 
 func _populate_resource_types(container: VBoxContainer) -> void:
 	for child in container.get_children():
+		container.remove_child(child)
 		child.queue_free()
-	for rt in _schema.resource_types:
+	for rt in _shared_config.resource_types:
+		var captured_rt := rt
 		var row := HBoxContainer.new()
 		var label := Label.new()
 		label.text = rt
@@ -828,14 +875,16 @@ func _populate_resource_types(container: VBoxContainer) -> void:
 		var remove_btn := Button.new()
 		remove_btn.flat = true
 		remove_btn.text = "X"
-		remove_btn.pressed.connect(func(): _show_remove_resource_type_dialog(rt))
+		remove_btn.pressed.connect(func(): _show_remove_resource_type_dialog(captured_rt))
 		row.add_child(remove_btn)
 		container.add_child(row)
 
 func _populate_known_tags(container: VBoxContainer) -> void:
 	for child in container.get_children():
+		container.remove_child(child)
 		child.queue_free()
-	for tag in _schema.known_tags:
+	for tag in _shared_config.known_tags:
+		var captured_tag := tag
 		var row := HBoxContainer.new()
 		var label := Label.new()
 		label.text = tag
@@ -845,8 +894,8 @@ func _populate_known_tags(container: VBoxContainer) -> void:
 		remove_btn.flat = true
 		remove_btn.text = "X"
 		remove_btn.pressed.connect(func():
-			_schema.known_tags.erase(tag)
-			_plugin.save_schema()
+			_shared_config.known_tags.erase(captured_tag)
+			save_shared_config()
 		)
 		row.add_child(remove_btn)
 		container.add_child(row)
@@ -874,8 +923,14 @@ func _show_status(message: String) -> void:
 	if _status_label:
 		_status_label.text = message
 		_status_label.visible = true
-		var tween := create_tween()
-		tween.tween_callback(func(): _status_label.visible = false).set_delay(2.0)
+		if _status_tween and _status_tween.is_valid():
+			_status_tween.kill()
+		_status_tween = create_tween()
+		_status_tween.tween_callback(func(): _status_label.visible = false).set_delay(2.0)
+
+func _center_window(window: Window) -> void:
+	var base_size := Vector2i(EditorInterface.get_base_control().size)
+	window.position = (base_size - window.size) / 2
 
 func _show_message(message: String) -> void:
 	var dialog := AcceptDialog.new()
@@ -897,48 +952,33 @@ func _show_confirm_dialog(title: String, message: String, on_confirm: Callable) 
 	dialog.popup_centered()
 
 func _show_input_dialog(title: String, message: String, placeholder: String, on_confirm: Callable) -> void:
-	var window := Window.new()
-	window.title = title
-	window.transient = true
-	window.exclusive = true
-	window.size = Vector2i(int(350 * _scale), int(150 * _scale))
-	EditorInterface.get_base_control().add_child(window)
-	window.popup()
+	var dialog := ConfirmationDialog.new()
+	dialog.title = title
+	dialog.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS
+	EditorInterface.get_base_control().add_child(dialog)
 	
 	var vbox := VBoxContainer.new()
-	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
-	window.add_child(vbox)
+	vbox.add_theme_constant_override("separation", 8)
+	dialog.add_child(vbox)
 	
-	var label := Label.new()
-	label.text = message
-	vbox.add_child(label)
+	if message != "":
+		var label := Label.new()
+		label.text = message
+		vbox.add_child(label)
 	
 	var input := LineEdit.new()
 	input.placeholder_text = placeholder
+	input.custom_minimum_size.x = int(240 * _scale)
 	vbox.add_child(input)
 	
-	var hbox := HBoxContainer.new()
-	hbox.alignment = BoxContainer.ALIGNMENT_END
-	vbox.add_child(hbox)
-	
-	var cancel_btn := Button.new()
-	cancel_btn.text = "Cancel"
-	cancel_btn.pressed.connect(func(): window.queue_free())
-	hbox.add_child(cancel_btn)
-	
-	var ok_btn := Button.new()
-	ok_btn.text = "OK"
-	ok_btn.pressed.connect(func():
+	dialog.register_text_enter(input)
+	dialog.confirmed.connect(func():
 		on_confirm.call(input.text.strip_edges())
-		window.queue_free()
+		dialog.queue_free()
 	)
-	hbox.add_child(ok_btn)
-	
-	input.text_submitted.connect(func(_text: String):
-		on_confirm.call(input.text.strip_edges())
-		window.queue_free()
-	)
-	input.grab_focus()
+	dialog.canceled.connect(func(): dialog.queue_free())
+	dialog.popup_centered()
+	input.call_deferred("grab_focus")
 
 func _show_add_resource_type_dialog() -> void:
 	_show_input_dialog(
@@ -946,9 +986,9 @@ func _show_add_resource_type_dialog() -> void:
 		"Enter resource type name:",
 		"e.g. gold, mana",
 		func(new_type: String):
-			if new_type != "" and not new_type in _schema.resource_types:
-				_schema.resource_types.append(new_type)
-				_plugin.save_schema()
+			if new_type != "" and not new_type in _shared_config.resource_types:
+				_shared_config.resource_types.append(new_type)
+				save_shared_config()
 				_plugin.regenerate_data_class()
 	)
 
@@ -958,9 +998,9 @@ func _show_add_tag_dialog() -> void:
 		"Enter tag name:",
 		"e.g. camo, flying",
 		func(new_tag: String):
-			if new_tag != "" and not new_tag in _schema.known_tags:
-				_schema.known_tags.append(new_tag)
-				_plugin.save_schema()
+			if new_tag != "" and not new_tag in _shared_config.known_tags:
+				_shared_config.known_tags.append(new_tag)
+				save_shared_config()
 	)
 
 func _show_remove_resource_type_dialog(resource_type: String) -> void:
@@ -981,8 +1021,8 @@ func _show_remove_resource_type_dialog(resource_type: String) -> void:
 					var dict: Dictionary = entry.get(key)
 					dict[resource_type] = 0
 					_manager.save_entry(entry, entry.resource_path)
-				_schema.resource_types.erase(resource_type)
-				_plugin.save_schema()
+				_shared_config.resource_types.erase(resource_type)
+				save_shared_config()
 				_plugin.regenerate_data_class()
 				_refresh_dynamic_list()
 		)
@@ -991,8 +1031,8 @@ func _show_remove_resource_type_dialog(resource_type: String) -> void:
 			"Remove Resource Type",
 			"Remove \"%s\" from the list?" % resource_type,
 			func():
-				_schema.resource_types.erase(resource_type)
-				_plugin.save_schema()
+				_shared_config.resource_types.erase(resource_type)
+				save_shared_config()
 				_plugin.regenerate_data_class()
 				_refresh_dynamic_list()
 		)

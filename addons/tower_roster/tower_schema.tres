@@ -98,4 +98,3 @@ data_class_script_path = "res://towers/TowerData.gd"
 base_properties = Array[ExtResource("1_prop")]([SubResource("prop_name"), SubResource("prop_range"), SubResource("prop_damage"), SubResource("prop_fire_rate"), SubResource("prop_pierce"), SubResource("prop_multishot"), SubResource("prop_traversal"), SubResource("prop_attack_style"), SubResource("prop_projectile"), SubResource("prop_target_mode"), SubResource("prop_target_tags"), SubResource("prop_visuals")])
 dynamic_properties_label = "Costs"
 dynamic_properties_key = "costs"
-resource_types = Array[String](["Gold", "Iron"])

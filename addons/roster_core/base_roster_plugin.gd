@@ -64,6 +64,11 @@ func regenerate_data_class() -> void:
 	if not schema:
 		push_error("BaseRosterPlugin: No schema loaded.")
 		return
-	var manager := RosterDataManager.new(schema)
+	var shared := SharedConfig.new()
+	if FileAccess.file_exists(SharedConfig.PATH):
+		var loaded := load(SharedConfig.PATH) as SharedConfig
+		if loaded:
+			shared = loaded
+	var manager := RosterDataManager.new(schema, shared)
 	manager.regenerate_data_class()
 	schema_changed.emit()

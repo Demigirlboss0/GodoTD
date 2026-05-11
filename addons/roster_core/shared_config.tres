@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="SharedConfig" format=3 uid="uid://dvwaadmy7liad"]
+
+[ext_resource type="Script" uid="uid://cxx6sqtc2xk44" path="res://addons/roster_core/shared_config.gd" id="1_shared"]
+
+[resource]
+script = ExtResource("1_shared")
+known_tags = Array[String](["CAMO"])
+resource_types = Array[String](["Gold", "Iron"])

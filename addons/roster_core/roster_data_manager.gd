@@ -1,14 +1,19 @@
 @tool
-extends Node
+extends RefCounted
 class_name RosterDataManager
 
 ## Unified data manager for roster systems.
 ## Handles file I/O, class generation, and efficient discovery.
 
 var _schema: RosterSchema
+var _shared: SharedConfig
 
-func _init(schema: RosterSchema) -> void:
+func _init(schema: RosterSchema, shared: SharedConfig) -> void:
+	if not schema:
+		push_error("RosterDataManager: schema must not be null.")
+		return
 	_schema = schema
+	_shared = shared
 	_ensure_output_directory()
 	_ensure_data_class()
 
@@ -59,29 +64,20 @@ func discover_entries() -> Array[Dictionary]:
 	dir.list_dir_end()
 	return result
 
-## Reads the first line containing the name field from a .tres file.
+## Reads the display name from a .tres file.
+## Uses load() which correctly resolves uid-based ExtResource references
+## (ConfigFile.load() cannot handle uids in format=3 .tres files).
 func _peek_resource_name(path: String) -> String:
-	var file := FileAccess.open(path, FileAccess.READ)
-	if not file:
-		return ""
 	var name_prop := ""
 	if _schema.get_name_property():
 		name_prop = _schema.get_name_property().property_name
 	else:
-		file.close()
 		return ""
 	
-	var search := name_prop + " = "
-	while not file.eof_reached():
-		var line := file.get_line()
-		if line.begins_with(search):
-			file.close()
-			return line.substr(search.length()).strip_edges().trim_prefix("\"").trim_suffix("\"")
-		## Stop after we've passed the [resource] block and hit the next block or end
-		if line.begins_with("[") and not line.begins_with("[resource"):
-			break
-	file.close()
-	return ""
+	var res := load(path)
+	if not res:
+		return ""
+	return str(res.get(name_prop) if name_prop in res else "")
 
 func load_entry(path: String) -> Resource:
 	if not FileAccess.file_exists(path):
@@ -117,7 +113,7 @@ func _validate_entry(entry: Resource) -> bool:
 	if key in entry:
 		var dict = entry.get(key)
 		if dict is Dictionary:
-			for rt in _schema.resource_types:
+			for rt in _shared.resource_types if _shared else []:
 				if dict.has(rt):
 					if not (dict[rt] is int or dict[rt] is float):
 						push_error("Validation failed: dynamic property '%s' expected numeric, got %s" % [rt, typeof(dict[rt])])
@@ -166,7 +162,13 @@ func regenerate_data_class() -> void:
 
 func _generate_data_class() -> void:
 	var template_path := "res://addons/roster_core/data_class_template.txt"
+	if not FileAccess.file_exists(template_path):
+		push_error("RosterDataManager: data class template not found at " + template_path)
+		return
 	var template := FileAccess.get_file_as_string(template_path)
+	if template.is_empty():
+		push_error("RosterDataManager: data class template is empty.")
+		return
 	
 	var result := template.replace("{CLASS_NAME}", _schema.data_class_name)
 	result = result.replace("{ENUMS}", _build_enums_string())
@@ -178,6 +180,8 @@ func _generate_data_class() -> void:
 	if file:
 		file.store_string(result)
 		file.close()
+		EditorInterface.get_resource_filesystem().update_file(_schema.data_class_script_path)
+		EditorInterface.get_resource_filesystem().scan()
 
 func _build_enums_string() -> String:
 	var enums := _collect_enums()

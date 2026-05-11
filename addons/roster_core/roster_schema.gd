@@ -16,8 +16,6 @@ class_name RosterSchema
 @export var dynamic_properties_key: String = "dynamic"
 
 @export var project_mode: int = 0  ## 0 = 2D, 1 = 3D
-@export var resource_types: Array[String] = []
-@export var known_tags: Array[String] = []
 
 func get_properties_by_category(category: String) -> Array[RosterProperty]:
 	var result: Array[RosterProperty] = []

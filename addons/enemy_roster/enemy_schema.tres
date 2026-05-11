@@ -1,15 +1,13 @@
-[gd_resource type="Resource" load_steps=8 format=3 uid="uid://enemy_schema_001"]
+[gd_resource type="Resource" script_class="RosterSchema" format=3 uid="uid://bvppodigqakg2"]
 
-[ext_resource type="Script" path="res://addons/roster_core/roster_property.gd" id="1_prop"]
-[ext_resource type="Script" path="res://addons/roster_core/roster_schema.gd" id="2_schema"]
+[ext_resource type="Script" uid="uid://cam3rvr4ieymc" path="res://addons/roster_core/roster_property.gd" id="1_prop"]
+[ext_resource type="Script" uid="uid://c2c14dcj8lern" path="res://addons/roster_core/roster_schema.gd" id="2_schema"]
 
 [sub_resource type="Resource" id="prop_name"]
 script = ExtResource("1_prop")
 property_name = "enemy_name"
 display_name = "Name"
 category = "Basic Info"
-type = 0
-default_value = ""
 
 [sub_resource type="Resource" id="prop_max_health"]
 script = ExtResource("1_prop")
@@ -49,13 +47,9 @@ default_value = {}
 [resource]
 script = ExtResource("2_schema")
 roster_name = "Enemy Roster"
-roster_icon = "res://icon.svg"
 output_directory = "res://enemies/"
 data_class_name = "EnemyData"
 data_class_script_path = "res://enemies/EnemyData.gd"
 base_properties = Array[ExtResource("1_prop")]([SubResource("prop_name"), SubResource("prop_max_health"), SubResource("prop_speed"), SubResource("prop_damage"), SubResource("prop_tags"), SubResource("prop_visuals")])
 dynamic_properties_label = "Rewards"
 dynamic_properties_key = "rewards"
-project_mode = 0
-resource_types = Array[String](["gold"])
-known_tags = Array[String](["CAMO"])
